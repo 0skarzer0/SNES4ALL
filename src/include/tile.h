@@ -168,8 +168,17 @@ extern unsigned snes4all_debug_tilecache_tiles;
 #define PRINT_NEWTILE
 #endif
 
+#ifdef USE_GL
+#define TILE_DEFINE_CONVERTED int tile_converted=0;
+#define TILE_CONVERTED tile_converted=1;
+#else
+#define TILE_DEFINE_CONVERTED
+#define TILE_CONVERTED
+#endif
+
 #define TILE_PREAMBLE \
     uint8 *pCache; \
+    TILE_DEFINE_CONVERTED \
 \
     uint32 TileAddr = BG.TileAddress + ((Tile & 0x3ff) << BG.TileShift); \
     if ((Tile & 0x1ff) >= 256) \
@@ -184,6 +193,7 @@ extern unsigned snes4all_debug_tilecache_tiles;
     if (!BG.Buffered [TileNumber]) \
     { \
 	PRINT_NEWTILE \
+	TILE_CONVERTED \
 	BG.Buffered[TileNumber] = ConvertTile (pCache, TileAddr); \
     } \
 \

@@ -167,6 +167,8 @@ static int ReadBlock (const char *key, void *block, int max_len, STREAM snap)
     return (SUCCESS);
 }
 
+void MemSpeedx2_hack_load(void);
+
 static int ReadOrigSnapshot (STREAM snap)
 {
     char buffer [_MAX_PATH];
@@ -223,6 +225,7 @@ static int ReadOrigSnapshot (STREAM snap)
     CPU.V_Counter = OrigCPU.V_Counter;
     CPU.MemSpeed = OrigCPU.MemSpeed;
     CPU.MemSpeedx2 = OrigCPU.MemSpeedx2;
+    MemSpeedx2_hack_load();
     CPU.FastROMSpeed = OrigCPU.FastROMSpeed;
 
     if ((result = ReadBlock ("REG:", &OrigRegisters, sizeof (OrigRegisters), snap)) != SUCCESS)

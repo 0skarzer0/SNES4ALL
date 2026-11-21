@@ -303,6 +303,7 @@ void S9xBuildDirectColourMaps ();
 extern struct SGFX GFX;
 
 bool8 S9xGraphicsInit ();
+void S9xGraphicsInitTiles ();
 void S9xGraphicsDeinit();
 bool8 S9xInitUpdate (void);
 bool8 S9xDeinitUpdate (int Width, int Height, bool8 sixteen_bit);

@@ -145,8 +145,14 @@ END_EXTERN_C
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
+#ifdef USE_MMU
+#define MMU_ALIGN __attribute__ ((__aligned__ (0x1000)))
+#else
+#define MMU_ALIGN
+#endif
+
 static int retry_count=0;
-static uint8 bytes0x2000 [0x2000];
+static uint8 bytes0x2000 [0x2000] MMU_ALIGN;
 static int is_bsx(unsigned char *);
 static int bs_name(unsigned char *);
 static int check_char(unsigned);
@@ -426,11 +432,11 @@ static char _IPPU_TileCache_8_[MAX_8BIT_TILES * 128];
 static char _IPPU_TileCached_2_[MAX_2BIT_TILES];
 static char _IPPU_TileCached_4_[MAX_4BIT_TILES];
 static char _IPPU_TileCached_8_[MAX_8BIT_TILES];
-uint8 CMemory_RAM[0x20000];
-uint8 CMemory_SRAM[0x20000];
-uint8 CMemory_VRAM[0x10000];
-uint8 CMemory_BSRAM[0x80000];
-uint8 CMemory_FillRAM[SNES4ALL_MAX_ROM_SIZE + 0x200 + 0x8000];
+uint8 CMemory_RAM[0x20000] MMU_ALIGN;
+uint8 CMemory_SRAM[0x20000] MMU_ALIGN;
+uint8 CMemory_VRAM[0x10000] MMU_ALIGN;
+uint8 CMemory_BSRAM[0x80000] MMU_ALIGN;
+uint8 CMemory_FillRAM[SNES4ALL_MAX_ROM_SIZE + 0x200 + 0x8000] MMU_ALIGN;
 #else
 extern char _IPPU_TileCache_2_[MAX_2BIT_TILES * 128];
 extern char _IPPU_TileCache_4_[MAX_4BIT_TILES * 128];
@@ -1347,10 +1353,8 @@ void CMemory_InitROM (bool8 Interleaved)
 		if ((CMemory_ROMType & 0xf0) == 0x40)
 			Settings.SDD1 = !Settings.ForceNoSDD1;
 
-#if 0		
 		if (Settings.SDD1)
 			S9xLoadSDD1Data ();
-#endif
 		
 		if(((CMemory_ROMType &0xF0) == 0xF0)&((CMemory_ROMSpeed&0x0F)!=5))
 		{
@@ -1563,8 +1567,10 @@ void CMemory_InitROM (bool8 Interleaved)
 	IAPU.OneCycle = ONE_APU_CYCLE;
 	Settings.Shutdown = Settings.ShutdownMaster;
 	
+#ifndef USE_OLD_DSP1
 	SetDSP=&DSP1SetByte;
 	GetDSP=&DSP1GetByte;
+#endif
 
 	CMemory_ResetSpeedMap();
 	CMemory_ApplyROMFixes ();
@@ -1642,8 +1648,10 @@ bool8 CMemory_LoadSRAM (const char *filename)
 				S9xLoadSPC7110RTC (&rtc_f9);
 			}
 			
+#ifndef USE_GL
 			sprintf(String, "Loaded %s", S9xBasename (filename));
 			S9xMessage (S9X_INFO, S9X_FREEZE_FILE_INFO, String);
+#endif
 			return (TRUE);
 		}
 	}
@@ -1694,8 +1702,10 @@ bool8 CMemory_SaveSRAM (const char *filename)
 			{
 				S9xSaveSPC7110RTC (&rtc_f9);
 			}
+#ifndef USE_GL
 			sprintf(String, "Saved %s", S9xBasename (filename));
 			S9xMessage (S9X_INFO, S9X_FREEZE_FILE_INFO, String);
+#endif
 			return (TRUE);
 		}
 	}
@@ -3613,7 +3623,11 @@ const char *CMemory_KartContents ()
 		if (CMemory_ROMType & 0xf0) 
 			sprintf (tmp, "%s+%s", tmp, CoPro [(CMemory_ROMType & 0xf0) >> 4]);
 		else
+#ifndef USE_OLD_DSP1
 			sprintf (tmp, "%s+%s", tmp, DSPSel [DSP1.version]);
+#else
+			sprintf (tmp, "%s+%s", tmp, "DSP1");
+#endif
 	}
 	
     return (tmp);
@@ -3666,6 +3680,7 @@ void CMemory_ApplyROMFixes ()
 	}
 
 	//Ambiguous chip function pointer assignments
+#ifndef USE_OLD_DSP1
 	DSP1.version=0;
 
 	//DSP switching:
@@ -3695,6 +3710,7 @@ void CMemory_ApplyROMFixes ()
 		SetDSP=&DSP4SetByte;
 		GetDSP=&DSP4GetByte;
 	}
+#endif
 
 	//memory map corrections
 	if(strncmp(CMemory_ROMName, "XBAND",5)==0)
@@ -4438,7 +4454,7 @@ void CMemory_ParseSNESHeader(uint8* RomHeader)
 		else sprintf(CMemory_CompanyId, "%02X", RomHeader[0x2A]);
 }
 
-#ifdef NO_INLINE_SET_GET
+#if defined(NO_INLINE_SET_GET) || defined(USE_MMU)
 #define INLINE
 #include "getset.h"
 #endif

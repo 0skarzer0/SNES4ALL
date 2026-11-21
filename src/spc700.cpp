@@ -95,7 +95,11 @@
 
 // SPC700/Sound DSP chips have a 24.57MHz crystal on their PCB.
 
-#ifdef NO_INLINE_SET_GET
+#ifdef INLINE
+#undef INLINE
+#endif
+
+#if defined(NO_INLINE_SET_GET) || defined(USE_MMU)
 #define INLINE static
 #else
 #define INLINE static __inline__
@@ -119,15 +123,23 @@ END_EXTERN_C
 #define OP1 (*(IAPU.PC + 1))
 #define OP2 (*(IAPU.PC + 2))
 
+#ifdef USE_ALWAYS_APU_SYNC
+#define COND_APUShutdown (IAPU.WaitCounter == 0)
+#else
+#define COND_APUShutdown (IAPU.WaitCounter == 0 || snes4all_sound_enable <= 1)
+#endif
+
 #ifdef SPC700_SHUTDOWN
 #define APUShutdown() \
     if (Settings.Shutdown && (IAPU.PC == IAPU.WaitAddress1 || IAPU.PC == IAPU.WaitAddress2)) \
     { \
-	if (IAPU.WaitCounter == 0) \
+	if COND_APUShutdown \
 	{ \
 	    if (!ICPU.CPUExecuting) \
 	    { \
- 		APU.Cycles = CPU.Cycles = CPU.NextEvent; \
+		if (CPU.Cycles < CPU.NextEvent) \
+ 			CPU.Cycles = CPU.NextEvent; \
+		APU.Cycles = CPU.Cycles; \
 		S9xUpdateAPUTimer(); \
 		} \
 	    else \
@@ -143,6 +155,22 @@ END_EXTERN_C
 #define APUShutdown()
 #endif
 
+#define _APU_Shutdown_(COND,CYC) \
+    if (COND) { \
+	IAPU.PC = IAPU.RAM + (uint16) Int16; \
+	APU.Cycles += IAPU.TwoCycles; \
+	APUShutdown (); \
+    } else \
+	IAPU.PC += (CYC)
+
+#if defined(NO_INLINE_SET_GET) || defined(USE_MMU)
+static void APU_Shutdown(int cond, int cyc){
+	_APU_Shutdown_(cond,cyc);
+}
+#else
+#define APU_Shutdown(COND,CYC) _APU_Shutdown_(COND,CYC)
+#endif
+
 #define APUSetZN8(b)\
     IAPU._Zero = (b);
 
@@ -151,20 +179,16 @@ END_EXTERN_C
 
 static void STOP (char *s)
 {
+#if 0
     char buffer[100];
-
-#ifdef DEBUGGER
-    S9xAPUOPrint (buffer, IAPU.PC - IAPU.RAM);
-#endif
 
     sprintf (String, "Sound CPU in unknown state executing %s at %04X\n%s\n", s, IAPU.PC - IAPU.RAM, buffer);
     S9xMessage (S9X_ERROR, S9X_APU_STOPPED, String);
+#endif
     APU.TimerEnabled[0] = APU.TimerEnabled[1] = APU.TimerEnabled[2] = FALSE;
     IAPU.APUExecuting = FALSE;
 
-#ifdef DEBUGGER
-    CPU.Flags |= DEBUG_MODE_FLAG;
-#else
+#if 0
     S9xExit ();
 #endif
 }
@@ -911,84 +935,42 @@ static void Apu10 ()
 {
 // BPL
     Relative ();
-    if (!APUCheckNegative ())
-    {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
-	APU.Cycles += IAPU.TwoCycles;
-	APUShutdown ();
-    }
-    else
-	IAPU.PC += 2;
-}
+    APU_Shutdown(!APUCheckNegative (), 2);
+} 
 
 static void Apu30 ()
 {
 // BMI
     Relative ();
-    if (APUCheckNegative ())
-    {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
-	APU.Cycles += IAPU.TwoCycles;
-	APUShutdown ();
-    }
-    else
-	IAPU.PC += 2;
+    APU_Shutdown(APUCheckNegative (), 2);
 }
 
 static void Apu90 ()
 {
 // BCC
     Relative ();
-    if (!APUCheckCarry ())
-    {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
-	APU.Cycles += IAPU.TwoCycles;
-	APUShutdown ();
-    }
-    else
-	IAPU.PC += 2;
+    APU_Shutdown(!APUCheckCarry (),2);
 }
 
 static void ApuB0 ()
 {
 // BCS
     Relative ();
-    if (APUCheckCarry ())
-    {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
-	APU.Cycles += IAPU.TwoCycles;
-	APUShutdown ();
-    }
-    else
-	IAPU.PC += 2;
+    APU_Shutdown(APUCheckCarry (),2);
 }
 
 static void ApuD0 ()
 {
 // BNE
     Relative ();
-    if (!APUCheckZero ())
-    {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
-	APU.Cycles += IAPU.TwoCycles;
-	APUShutdown ();
-    }
-    else
-	IAPU.PC += 2;
+    APU_Shutdown(!APUCheckZero (),2);
 }
 
 static void ApuF0 ()
 {
 // BEQ
     Relative ();
-    if (APUCheckZero ())
-    {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
-	APU.Cycles += IAPU.TwoCycles;
-	APUShutdown ();
-    }
-    else
-	IAPU.PC += 2;
+    APU_Shutdown (APUCheckZero (),2);
 }
 
 static void Apu50 ()
@@ -1479,14 +1461,7 @@ static void Apu2E ()
     Work8 = OP1;
     Relative2 ();
     
-    if (S9xAPUGetByteZ (Work8) != APURegisters.YA.B.A)
-    {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
-	APU.Cycles += IAPU.TwoCycles;
-	APUShutdown ();
-    }
-    else
-	IAPU.PC += 3;
+    APU_Shutdown(S9xAPUGetByteZ (Work8) != APURegisters.YA.B.A, 3);
 }
 
 static void ApuDE ()
@@ -1495,14 +1470,7 @@ static void ApuDE ()
     Work8 = OP1 + APURegisters.X;
     Relative2 ();
 
-    if (S9xAPUGetByteZ (Work8) != APURegisters.YA.B.A)
-    {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
-	APU.Cycles += IAPU.TwoCycles;
-	APUShutdown ();
-    }
-    else
-	IAPU.PC += 3;
+    APU_Shutdown(S9xAPUGetByteZ (Work8) != APURegisters.YA.B.A, 3);
 }
 
 static void Apu3D ()
@@ -2556,3 +2524,8 @@ void (*S9xApuOpcodes[256]) (void) =
 	ApuF8, ApuF9, ApuFA, ApuFB, ApuFC, ApuFD, ApuFE, ApuFF
 };
 
+void S9xApuExecute(void) {
+    if (IAPU.APUExecuting)
+	while (APU.Cycles <= CPU.Cycles) 
+		APU_EXECUTE1(); 
+}

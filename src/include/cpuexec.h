@@ -93,9 +93,17 @@
 #include "memmap.h"
 #include "65c816.h"
 
+#ifdef USE_ALWAYS_APU_SYNC
+#define DO_HBLANK_APU() 
+#else
+#define DO_HBLANK_APU() S9xApuExecute()
+#endif
+
 #define DO_HBLANK_CHECK() \
-    if (CPU.Cycles >= CPU.NextEvent) \
-	S9xDoHBlankProcessing ();
+    if (CPU.Cycles >= CPU.NextEvent) { \
+	DO_HBLANK_APU(); \
+	S9xDoHBlankProcessing (); \
+    }
 
 struct SOpcodes {
 #ifdef __WIN32__
@@ -195,7 +203,7 @@ static __inline__ void S9xReschedule ()
 {
     uint8 which;
     long max;
-    
+
     if (CPU.WhichEvent == HBLANK_START_EVENT ||
 	CPU.WhichEvent == HTIMER_AFTER_EVENT)
     {
@@ -204,8 +212,16 @@ static __inline__ void S9xReschedule ()
     }
     else
     {
-	which = HBLANK_START_EVENT;
-	max = Settings.HBlankStart;
+#ifndef USE_HDMA_EVENT   
+	if (!IPPU.HDMA) {
+		which = HBLANK_END_EVENT;
+		max = Settings.H_Max;
+	} else 
+#endif
+	{
+		which = HBLANK_START_EVENT;
+		max = Settings.HBlankStart;
+	}
     }
 
     if (PPU.HTimerEnabled &&

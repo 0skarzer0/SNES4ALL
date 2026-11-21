@@ -1066,6 +1066,7 @@ PackStatusZero\K:
 #ifdef CPU_SHUTDOWN
 	mov.l Settings,r1
 	mov.b Shutdown,r0
+	extu.b r0,r0
 	tst r0,r0
 	bt .NoCPUShutdown\K
 	mov.l WaitAddress,r0
@@ -1074,10 +1075,10 @@ PackStatusZero\K:
 	mov.l WaitCounter,r0
 	tst r0,r0
 	bf .CPUShutdownNotYet\K
-!	mov.l Flags,r2
-!	mov.w .ShutdownMask\K,r1
-!	tst r2,r1
-!	bf .CPUShutdownNotYet\K
+	mov.l Flags,r2
+	mov.w .ShutdownMask\K,r1
+	tst r2,r1
+	bf .CPUShutdownNotYet\K
 	
 #ifdef ARMAPU
 	mov #0,r2
@@ -1097,6 +1098,7 @@ PackStatusZero\K:
 #ifndef USE_ASM_R12
 	add #16,r11
 #endif
+	extu.b r0,r0
 	mov.l NextEvent, CYCLES
 #ifndef USE_ASM_R12
 	add #-16,r11
@@ -1109,15 +1111,16 @@ PackStatusZero\K:
 	mov #0,r0
 	mov.l r4,@-r15
 	mov.b r0, CPUExecuting
+#ifndef USE_OLD_APUEXEC
+	SAVE_CYCLES
+	PUSH_REGISTERS
+	mov.l .S9xApuExecute\K,r1
+	jsr @r1
+	nop
+	POP_REGISTERS
+	LOAD_CYCLES
+#else
 .CPUShutdownAPUExecLoop\K:
-#ifdef DEBUGGER
-	testb $2,APUFlags
-	je .CPUShutdownNoAPUTrace\K
-	STORE_REGISTERS
-	ccall S9xTraceAPU
-	LOAD_REGISTERS
-.CPUShutdownNoAPUTrace\K:
-#endif
 #ifdef SPC700_C
 	mov.l IAPU,r1
 	SAVE_CYCLES
@@ -1154,6 +1157,7 @@ PackStatusZero\K:
 	mov.l APUCycles,r3
 	cmp/ge r2,r3
 	bf .CPUShutdownAPUExecLoop\K
+#endif
 	mov.l ICPU,r1
 	mov #1,r0
 	mov.l @r15+,r4
@@ -1161,10 +1165,15 @@ PackStatusZero\K:
 	mov.b r0, CPUExecuting
 
 	.align 2
+#ifndef USE_OLD_APUEXEC
+.S9xApuExecute\K:
+	.long _S9xApuExecute
+#else
 .S9xAPUCycles\K:
 	.long _S9xAPUCycles
 .S9xApuOpcodes\K:
 	.long _S9xApuOpcodes
+#endif
 	.align 2
 
 #endif /* ARMAPU */

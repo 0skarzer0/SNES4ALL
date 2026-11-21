@@ -90,6 +90,10 @@
 #ifndef _DSP1_H_
 #define _DSP1_H_
 
+#ifdef USE_OLD_DSP1
+#include "dsp1_old.h"
+#else
+
 extern void  (*SetDSP)(uint8, uint16);
 extern uint8 (*GetDSP)(uint16);
 
@@ -127,6 +131,8 @@ END_EXTERN_C
 
 #ifndef NOW_IN_GLOBALS
 extern struct SDSP1 DSP1;
+#endif
+
 #endif
 
 #endif

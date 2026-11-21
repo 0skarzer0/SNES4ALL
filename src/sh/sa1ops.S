@@ -198,14 +198,6 @@ _S9xSA1MainLoop:
 	tst r0,r0
 	bt .exit
 	mov.l r1,@-r15
-#ifdef DEBUGGER
-	testb $TRACE_FLAG, SA1Flags
-	jz .NO_SA1_TRACE
-	STORE_REGISTERS
-	ccall S9xSA1Trace
-	LOAD_REGISTERS
-.NO_SA1_TRACE:
-#endif
 #ifdef CPU_SHUTDOWN
         mov.l PC, SA1PCAtOpcodeStart
 #endif
@@ -2582,14 +2574,6 @@ OpFB:
 	.align 2
 
 Op00:
-#ifdef DEBUGGER
-	testb $TRACE_FLAG, Flags
-	je .BRK_NO_TRACE
-	pushl $.LC0
-	ccall S9xTraceMessage
-	addl $4,%esp
-.BRK_NO_TRACE:
-#endif
 	mov.w .emflag,r0
 	tst r0,FLAGS16
 	bf .BRK_EMULATION
@@ -2648,25 +2632,11 @@ Op00:
 .emflag:
 	.word	Emulation
 
-#ifdef DEBUGGER
-	.align 2
-.LC0:
-	.ascii	"*** BRK"
-	.byte 0
-#endif
 	.align 2
 
 	
 .globl S9xSA1Opcode_IRQ_r
 S9xSA1Opcode_IRQ_r:
-#ifdef DEBUGGER
-	testb $TRACE_FLAG, Flags
-	je .IRQ_NO_TRACE
-	pushl $.LC1
-	ccall S9xTraceMessage
-	addl $4, %esp
-.IRQ_NO_TRACE:
-#endif
 	mov.w .emflag1,r0
 	sts.l pr,@-r15
 	tst r0,FLAGS16
@@ -2733,12 +2703,6 @@ S9xSA1Opcode_IRQ_r:
 .emflag1:
 	.word	Emulation
 
-#ifdef DEBUGGER
-	.align 2
-.LC1:
-	.ascii	"*** IRQ"
-	.byte 0
-#endif
 	.align 2
 .FillRAM2:
 	.long FillRAM
@@ -2750,14 +2714,6 @@ S9xSA1Opcode_IRQ_r:
 .globl S9xSA1Opcode_NMI_r
 
 S9xSA1Opcode_NMI_r:
-#ifdef DEBUGGER
-	testb $TRACE_FLAG, SA1Flags
-	je .NMI_NO_TRACE
-	pushl $.LC2
-	ccall S9xTraceMessage
-	addl $4, %esp
-.NMI_NO_TRACE:
-#endif
 	mov.w .emflag2,r0
 	sts.l pr,@-r15
 	tst r0,FLAGS16
@@ -2828,24 +2784,10 @@ S9xSA1Opcode_NMI_r:
 .n2205:
 	.word	0x2205
 
-#ifdef DEBUGGER
-	.align 2
-.LC2:
-	.ascii	"*** NMI"
-	.byte 0
-#endif
 	.align 2
 
 
 Op02:
-#ifdef DEBUGGER
-	testb $TRACE_FLAG, SA1Flags
-	je .COP_NO_TRACE
-	pushl $.LC3
-	ccall S9xTraceMessage
-	addl $4,%esp
-.COP_NO_TRACE:
-#endif
 	mov.w .emflag25,r0
 	tst r0,FLAGS16
 	bf .COP_EMULATION
@@ -2903,12 +2845,6 @@ Op02:
 	.word	Emulation
 
 	
-#ifdef DEBUGGER
-	.align 2
-.LC3:
-	.ascii	"*** COP"
-	.byte 0
-#endif
 	.align 2
 
 
@@ -3366,14 +3302,6 @@ OpCB:
 	je S9xSA1MainAsmLoop
 	movb $0, CPUExecuting
 .WAITExecAPU:
-#ifdef DEBUGGER
-	testb $2,APUFlags
-	je .WAITNoAPUS9xSA1Trace
-	STORE_REGISTERS
-	ccall S9xSA1TraceAPU
-	LOAD_REGISTERS
-.WAITNoAPUS9xSA1Trace:
-#endif
 	xorl %eax,%eax
 #ifdef SPC700_C
 	movl APUPC,%edx

@@ -55,6 +55,9 @@ KOS_INIT_ROMDISK(romdisk);
 #include <SDL_mixer.h>
 #endif
 #ifdef DREAMCAST
+#ifdef USE_MMU
+#include "mmu_handle.h"
+#endif
 #include <SDL_dreamcast.h>
 extern int sdcard_exists;
 void reinit_sdcard(void);
@@ -72,8 +75,8 @@ int load_from_vmu(char *);
 #include <sys/types.h>
 #include <ctype.h>
 #include <dirent.h>
-#include "keydef.h"
 
+#include "keydef.h"
 #include "snes9x.h"
 #include "memmap.h"
 #include "debug.h"
@@ -88,12 +91,14 @@ int load_from_vmu(char *);
 #include "sa1.h"
 #include "dsp1.h"
 #include "missing.h"
+#include "dma.h"
 
 #include "menu.h"
 
 #include "sdlinterface.h"
+#include "videogl.h"
 
-#define AUTO_FRAMESKIP_DELAY 10
+#define AUTO_FRAMESKIP_DELAY 4
 #define TH_VCOUNTER_SPLIT 11
 #define SNES_MAX_MID_VCOUNTER (SNES_MAX_NTSC_VCOUNTER+((SNES_MAX_PAL_VCOUNTER-SNES_MAX_NTSC_VCOUNTER)/2))
 #define TH_VCOUNTER0 ((TH_VCOUNTER_SPLIT*SNES_MAX_PAL_VCOUNTER)/10)
@@ -102,6 +107,13 @@ int load_from_vmu(char *);
 #define TH_VCOUNTER3 ((TH_VCOUNTER_SPLIT*SNES_MAX_NTSC_VCOUNTER)/10)
 #define TH_VCOUNTER4 ((TH_VCOUNTER_SPLIT*240)/10)
 
+#ifdef DEBUG_CPU
+#if DEBUG_CPU == 0
+unsigned cpu_debugging=1;
+#else
+unsigned cpu_debugging=0;
+#endif
+#endif
 
 #if !defined(DREAMCAST) || !defined(USE_OPC_ASM)
 unsigned snes4all_max_vcounter=TH_VCOUNTER0;
@@ -111,19 +123,22 @@ short snes4all_vcounter[512];
 
 #if defined(DEBUG_TILECACHE) || defined(PROFILER_SNES4ALL)
 int snes4all_frameskip=0;
+#if defined(USE_ALWAYS_APU_SYNC) || !defined(DREAMCAST) || !defined(USE_OPC_ASM)
 int snes4all_sound_enable=0;
+#endif
 static int _snes4all_sound_enable_=0;
 int snes4all_transparency=0;
 int snes4all_throttle=0;
-int snes4all_raster=2;
 int snes4all_autosave=0;
+int snes4all_raster=2;
 int snes4all_raster_diff=16;
 #if !defined(DREAMCAST) || !defined(USE_OPC_ASM)
-int snes4all_sound_throttle=0;
+int snes4all_sound_throttle=1;
 unsigned snes4all_timeslice=2;
 #else
 extern  unsigned snes4all_timeslice;
 #endif
+
 
 #ifdef DEBUG_TILECACHE
 unsigned snes4all_debug_tilecache_tiles=0;
@@ -141,21 +156,30 @@ static void print_tileche_eficience(void)
 
 #else
 int snes4all_frameskip=-1;
+#if defined(USE_ALWAYS_APU_SYNC) || !defined(DREAMCAST) || !defined(USE_OPC_ASM)
 int snes4all_sound_enable=1;
+#endif
 static int _snes4all_sound_enable_=0;
 int snes4all_transparency=0;
 int snes4all_raster=2;
 int snes4all_raster_diff=16;
 int snes4all_autosave=-1;
-int snes4all_throttle=2;
+int snes4all_throttle=1;
 #if !defined(DREAMCAST) || !defined(USE_OPC_ASM)
-int snes4all_sound_throttle=((1<<2)-1);
-unsigned snes4all_timeslice=2+(2<<1);
+int snes4all_sound_throttle=(1<<1);
+unsigned snes4all_timeslice=2+(1<<1);
 #else
 extern int snes4all_sound_throttle;
 extern  unsigned snes4all_timeslice;
 #endif
 #endif
+
+#ifdef USE_GL
+int snes4all_hw_render=-1;
+#endif
+
+int snes4all_booting=200;
+int snes4all_sound_enable_real=1;
 
 int OldSkipFrame;
 
@@ -165,13 +189,18 @@ long reportf=0;
 
 #define MUSIC_VOLUME 64
 
-#define MAX_FRAMESKIP 10
+//#define MAX_FRAMESKIP 10
+#define MAX_FRAMESKIP 4
  
 char snes4all_image_file[1024];
 int snes4all_emulating=0;
 char *rom_filename = (char *)&snes4all_image_file[0];
 char *snapshot_filename = NULL;
 
+#ifdef DISPLAY_FRAMERATE
+unsigned snes4all_frames_per_second=0;
+int snes4all_displayframerate=1;
+#endif
 
 static uint32 joypad_val[8]={0x80000000,0x80000000,0x80000000,0x80000000,0x80000000,0x80000000,0x80000000,0x80000000};
 
@@ -193,9 +222,9 @@ Snes9X: Memory allocation failure - not enough RAM/virtual memory available.\n\
     exit (1);
 }
 
-
 static void getChanges(void)
 {
+//snes4all_transparency=snes4all_hw_render=-1; snes4all_raster=0; snes4all_frameskip=0;
 	if (snes4all_transparency)
 		Settings.Transparency=TRUE;
 	else
@@ -204,6 +233,11 @@ static void getChanges(void)
 		Settings.SkipFrames=AUTO_FRAMERATE;
 	else
 		Settings.SkipFrames=snes4all_frameskip;
+	
+	snes4all_sound_enable_real=snes4all_sound_enable;
+	if (snes4all_booting && snes4all_sound_enable==1) {
+		snes4all_sound_enable=2;
+	}
 #ifdef NOSOUND
 	S9xSetSoundMute(!snes4all_sound_enable);
 #endif
@@ -251,20 +285,108 @@ static void getChanges(void)
 			for(i=0;i<512;i++)
 				snes4all_vcounter[i]=i+1;
 	}
-	if (snes4all_throttle)
-		snes4all_sound_throttle=(1<<snes4all_throttle)-1;
-	else
-		snes4all_sound_throttle=0;
+	snes4all_sound_throttle=(1<<snes4all_throttle);
 	snes4all_vcounter[511]=511;
+#ifndef USE_HDMA_EVENT   
+	snes4all_timeslice=2+(snes4all_throttle<<2);
+#else
 	snes4all_timeslice=2+(snes4all_throttle<<1);
+#endif
 	Settings.H_Max = (SNES_CYCLES_PER_SCANLINE * Settings.CyclesPercentage)/100;
 	snes4all_apu_hmax=Settings.H_Max*10000L;
 
+#ifdef USE_GL
+	videogl_change_render(snes4all_hw_render);
+	S9xGraphicsInitTiles();
+#endif
 	SDL_Event e;
 	SDL_Delay(100);
 	while (SDL_PollEvent(&e) > 0)
 		SDL_Delay(10);
 }
+
+void MemSpeedx2_hack_load(void) {
+	unsigned dato=CPU.MemSpeedx2;
+#ifndef USE_MEMORY_SPEED
+	if ((dato>>16)==0x3412) {
+		snes4all_transparency=dato&1;
+		if (dato&1) snes4all_transparency=-1;
+		else snes4all_transparency=0;
+		if (dato&2) snes4all_hw_render=-1;
+		else snes4all_hw_render=0;
+		snes4all_raster=(dato>>2)&0x7;
+		snes4all_throttle=(dato>>5)&0x7;
+		snes4all_sound_enable=(dato>>8)&0x3;
+		snes4all_frameskip=(dato>>10)&0x7;
+		if (snes4all_frameskip>5) snes4all_frameskip=-1;
+		getChanges();
+	} 
+#endif
+	CPU.MemSpeedx2=CPU.MemSpeed << 1;
+}
+
+void MemSpeedx2_hack_save(void) {
+#ifndef USE_MEMORY_SPEED
+	CPU.MemSpeedx2=(0x3412 << 16)|(((unsigned)snes4all_transparency)&1)|((((unsigned)snes4all_hw_render)&1)<<1)|((((unsigned)snes4all_raster)&0x7)<<2)|((((unsigned)snes4all_throttle)&0x7)<<5)|((((unsigned)snes4all_sound_enable)&0x3)<<8)|((((unsigned)snes4all_frameskip)&0x7)<<10);
+#endif
+}
+
+#ifdef USE_MMU
+static void mi_handler_mmu(void *mem, unsigned start, unsigned size) {}
+extern "C"{
+void S9xGetByte_callback(void);
+void S9xGetByte_callback_jmp(void);
+void S9xGetWord_callback(void);
+void S9xGetWord_callback_jmp(void);
+void S9xSetByte_callback(void);
+void S9xSetByte_callback_jmp(void);
+void S9xSetWord_callback(void);
+void S9xSetWord_callback_jmp(void);
+}
+
+void set_mmu_mappings(void) {
+	mmu_handle_restart();
+	for(unsigned i=0;i<MEMMAP_BLOCK_SIZE;i+=MEMMAP_BLOCKS_PER_BANK) {
+	    for(unsigned j=0;j<MEMMAP_BLOCKS_PER_BANK;j++) {
+		uint8 *addr=(CMemory_WriteMap[i+j]>=(uint8 *)CMemory_MAP_LAST)?CMemory_WriteMap[i+j]:CMemory_Map[i+j];
+		if (addr>= (uint8 *) CMemory_MAP_LAST) {
+			addr+=(j*MEMMAP_BLOCK_SIZE);
+//			printf("%.3x=%.6x:%.6x MAP %s\n",i+j,(i+j)*MEMMAP_BLOCK_SIZE,((i+j+1)*MEMMAP_BLOCK_SIZE)-1,(addr>=&CMemory_FillRAM[0] && addr<&CMemory_FillRAM[SNES4ALL_MAX_ROM_SIZE + 0x200 +0x8000])?"FillRAM":(addr>=&CMemory_RAM[0] && addr<&CMemory_RAM[0x20000])?"RAM":(addr>=&CMemory_ROM[0] && addr<&CMemory_ROM[SNES4ALL_MAX_ROM_SIZE])?"ROM":(addr>=&CMemory_VRAM[0] && addr<&CMemory_VRAM[0x10000])?"VRAM":(addr>=&CMemory_SRAM[0] && addr<&CMemory_SRAM[0x20000])?"SRAM":(addr>=&CMemory_C4RAM[0] && addr<&CMemory_C4RAM[0x8000])?"C4RAM":(CMemory_BWRAM && addr>=&CMemory_BWRAM[0] && addr<&CMemory_BWRAM[0x20000])?"BWRAM":"?????");
+			if (((unsigned)addr)&0xFFF) {
+				puts("MMU ERROR!!!");
+				mmu_handle_quit();
+				exit(0);
+			}
+			unsigned ptr=(unsigned)mmu_handle_add(1<<MEMMAP_SHIFT,1<<MEMMAP_SHIFT,mi_handler_mmu,addr);
+			if (ptr!=((i+j)<<MEMMAP_SHIFT)) {
+				puts("MMU ERROR NO EN LINEA!!!");
+				mmu_handle_quit();
+				exit(0);
+			}
+			dcache_flush_range((unsigned)addr,1<<MEMMAP_SHIFT);
+			mmu_handle_prefetch_single(ptr,0,1<<MEMMAP_SHIFT);
+		} else {
+//			printf("%.3x=%.6x:%.6x HLD %s\n",i+j,(i+j)*MEMMAP_BLOCK_SIZE,((i+j+1)*MEMMAP_BLOCK_SIZE)-1,((int)addr)==CMemory_MAP_PPU?"PPU":((int)addr)==CMemory_MAP_CPU?"CPU":((int)addr)==CMemory_MAP_DSP?"DSP":((int)addr)==CMemory_MAP_SA1RAM?"SA1RAM":((int)addr)==CMemory_MAP_LOROM_SRAM?"LOROM_SRAM":((int)addr)==CMemory_MAP_RONLY_SRAM?"RONLY_SRAM":((int)addr)==CMemory_MAP_HIROM_SRAM?"HIROM_SRAM":((int)addr)==CMemory_MAP_BWRAM?"BWRAM":((int)addr)==CMemory_MAP_C4?"C4":((int)addr)==CMemory_MAP_SPC7110_DRAM?"SPC7110_DRAM":((int)addr)==CMemory_MAP_SPC7110_ROM?"SPC7110_ROM":((int)addr)==CMemory_MAP_OBC_RAM?"OBC_RAM":((int)addr)==CMemory_MAP_SETA_DSP?"SETA_DSP":((int)addr)==CMemory_MAP_SETA_RISC?"SETA_RISC":"DEFAULT");
+			mmu_handle_add(1<<MEMMAP_SHIFT,1<<MEMMAP_SHIFT,mi_handler_mmu,NULL);
+		}
+	    }
+	}
+#ifdef USE_OPC_ASM
+//printf("Callback 0 GetByte %p\n",(void *)S9xGetByte_callback);
+	mmu_handle_add_callback(NULL/*(void *)&S9xGetByte*/,(void *)S9xGetByte_callback,4,0,0,((unsigned)S9xGetByte_callback_jmp)-((unsigned)S9xGetByte_callback));
+//printf("Callback 1 GetWord %p\n",(void *)S9xGetWord_callback);
+	mmu_handle_add_callback(NULL/*(void *)&S9xGetWord*/,(void *)S9xGetWord_callback,4,0,0,((unsigned)S9xGetWord_callback_jmp)-((unsigned)S9xGetWord_callback));
+//printf("Callback 2 SetByte %p\n",(void *)S9xSetByte_callback);
+	mmu_handle_add_callback(NULL/*(void *)&S9xSetByte*/,(void *)S9xSetByte_callback,0,4,1,((unsigned)S9xSetByte_callback_jmp)-((unsigned)S9xSetByte_callback));
+//printf("Callback 3 SetWord %p\n",(void *)S9xSetWord_callback);
+	mmu_handle_add_callback(NULL/*(void *)&S9xSetWord*/,(void *)S9xSetWord_callback,0,4,1,((unsigned)S9xSetWord_callback_jmp)-((unsigned)S9xSetWord_callback));
+#endif
+//mmu_handle_quit();exit(0);
+//puts("FLUSH!!!!");
+//	dcache_flush_range((unsigned)&CMemory_FillRAM[0],SNES4ALL_MAX_ROM_SIZE + 0x200 +0x8000);
+//	dcache_flush_range(0x80000000,0x20000000);
+}
+#endif
 
 #define dCPU(A) ((unsigned)(A))-((unsigned)&CPU)
 #define dSA1(A) ((unsigned)(A))-((unsigned)&SA1)
@@ -276,6 +398,10 @@ const char *S9xGetFilenameBase(const char *ex, int  based);
 extern "C"
 int main (int argc, char **argv)
 {
+#ifdef USE_MMU
+    mmu_handle_init();
+    puts("MMU Initted");
+#endif
     ZeroMemory (&Settings, sizeof (Settings));
 
     Settings.C4=FALSE;
@@ -388,6 +514,10 @@ puts("MAIN!!!!");
 
     snes4all_image_file[0]=0;
     init_text(1);
+#if defined(USE_GL) && defined(DREAMCAST)
+    extern SDL_Surface *text_screen;
+    GFX.Screen=(uint8 *)text_screen->pixels;
+#endif
 #ifndef AUTOLOAD
     run_mainMenu();
 #else
@@ -426,6 +556,9 @@ puts("MAIN!!!!");
 	    if (!CMemory_LoadROM (fname))
 	    {
 		printf ("Error opening: %s\n", rom_filename);
+#ifdef USE_MMU
+		mmu_handle_quit();
+#endif
 		exit (1);
 	    }
 	}
@@ -446,14 +579,20 @@ puts("MAIN!!!!");
 
     if (snapshot_filename)
     {
+	snes4all_booting=0;
+	snes4all_sound_enable=snes4all_sound_enable_real;
 	int Flags = CPU.Flags & (DEBUG_MODE_FLAG | TRACE_FLAG);
-	if (!S9xLoadSnapshot (snapshot_filename))
+	if (!S9xLoadSnapshot (snapshot_filename)){
+#ifdef USE_MMU
+	    mmu_handle_quit();
+#endif
 	    exit (1);
+	}
 	CPU.Flags |= Flags;
     }
 #ifndef _ZAURUS
     S9xGraphicsMode ();
-    sprintf (String, "\"%s\" %s: %s", CMemory_ROMName, TITLE, VERSION);
+    sprintf (String, "\"%s\" %s: %s", CMemory_ROMName, TITLE, "Beta2"); //VERSION);
     S9xSetTitle (String);
 #endif
 
@@ -474,41 +613,12 @@ puts("MAIN!!!!");
    savestate_state=-302;
 #endif
    _snes4all_sound_enable_=snes4all_sound_enable;
-#ifndef DEBUGGER
-   S9xMainLoop ();
-#else
-    while (1)
-    {
-	if (!Settings.Paused
-	    || (CPU.Flags & (DEBUG_MODE_FLAG | SINGLE_STEP_FLAG))
-           )
-
-	    S9xMainLoop ();
-
-	if (Settings.Paused
-	    || (CPU.Flags & DEBUG_MODE_FLAG)
-           )
-	{
-	    S9xSetSoundMute (TRUE);
-	}
-
-	if (CPU.Flags & DEBUG_MODE_FLAG)
-	{
-	    S9xDoDebug ();
-	}
-	else
-	if (Settings.Paused)
-	    S9xProcessEvents (TRUE);
-
-	if (!Settings.Paused
-	    && !(CPU.Flags & DEBUG_MODE_FLAG)
-           )
-	{
-	    S9xSetSoundMute (FALSE);
-	}
-    }
+#ifdef USE_MMU
+   set_mmu_mappings();
 #endif
-    return (0);
+
+   S9xMainLoop ();
+   return (0);
 }
 
 void S9xAutoSaveSRAM ()
@@ -530,7 +640,16 @@ void S9xExit ()
 //    S9xSaveCheatFile (S9xGetFilename (".cht"));
     CMemory_Deinit ();
     S9xDeinitAPU ();
-
+//extern unsigned tiles_2bit_maxframe, tiles_2bit_max, tiles_2bit_maxshift, tiles_2bit_maxmask, tiles_2bit_min, tiles_2bit_minshift, tiles_2bit_minmask;
+//printf("2BIT: FRAME=%u, TILES=%u/%u, SHIFT=%u/%u, MASK=%u/%u\n",tiles_2bit_maxframe,tiles_2bit_min==0xffffffff?0:tiles_2bit_min,tiles_2bit_max,tiles_2bit_minshift==0xffffffff?0:tiles_2bit_minshift,tiles_2bit_maxshift,tiles_2bit_minmask==0xffffffff?0:tiles_2bit_minmask,tiles_2bit_maxmask);
+//extern unsigned tiles_4bit_maxframe, tiles_4bit_max, tiles_4bit_maxshift, tiles_4bit_maxmask, tiles_4bit_min, tiles_4bit_minshift, tiles_4bit_minmask;
+//printf("4BIT: FRAME=%u, TILES=%u/%u, SHIFT=%u/%u, MASK=%u/%u\n",tiles_4bit_maxframe,tiles_4bit_min==0xffffffff?0:tiles_4bit_min,tiles_4bit_max,tiles_4bit_minshift==0xffffffff?0:tiles_4bit_minshift,tiles_4bit_maxshift,tiles_4bit_minmask==0xffffffff?0:tiles_4bit_minmask,tiles_4bit_maxmask);
+//extern unsigned tiles_8bit_maxframe, tiles_8bit_max, tiles_8bit_maxshift, tiles_8bit_maxmask, tiles_8bit_min, tiles_8bit_minshift, tiles_8bit_minmask;
+//printf("8BIT: FRAME=%u, TILES=%u/%u, SHIFT=%u/%u, MASK=%u/%u\n",tiles_8bit_maxframe,tiles_8bit_min==0xffffffff?0:tiles_8bit_min,tiles_8bit_max,tiles_8bit_minshift==0xffffffff?0:tiles_8bit_minshift,tiles_8bit_maxshift,tiles_8bit_minmask==0xffffffff?0:tiles_8bit_minmask,tiles_8bit_maxmask);
+//fflush(stdout);
+#ifdef USE_MMU
+    mmu_handle_quit();
+#endif
     exit (0);
 }
 
@@ -725,7 +844,12 @@ bool8 S9xInitUpdate ()
 
 bool8 S9xDeinitUpdate (int Width, int Height,bool8 sixnocount)
 {
+//puts("SWAP");
+#ifndef USE_GL
         SDL_Flip(screen);
+#else
+	videogl_flip(SDL_TRUE);
+#endif
 	return(TRUE);
 }
 
@@ -857,6 +981,9 @@ static void debug_frameskip(bool isframe)
 	if (snes4all_fskip_nframes>=AUTO_DEBUG_FRAMESKIP)
 	{
 		print_frameskip();
+#ifdef USE_MMU
+		mmu_handle_quit();
+#endif
 		exit(0);
 	}
 #endif
@@ -867,12 +994,23 @@ static void debug_frameskip(bool isframe)
 #define debug_reset_frameskip()
 #endif
 
-#ifdef USE_RENDER_BACK
-bool8 backRenderFrame=FALSE;
-#endif
+//bool8 backRenderThisFrame=TRUE;
 
 void S9xSyncSpeed ()
 {
+#ifndef USE_OLD_SYNC_SPEED
+	CPU.V_Counter = 0;
+	CMemory_FillRAM[0x213F]^=0x80;
+	PPU.RangeTimeOver = 0;
+	CPU.NMIActive = FALSE;
+	ICPU.Frame++;
+	PPU.HVBeamCounterLatched = 0;
+#endif
+    if (snes4all_booting) {
+	    snes4all_booting--;
+	    if (!snes4all_booting)
+		    snes4all_sound_enable=snes4all_sound_enable_real;
+    }
     S9xProcessEvents (FALSE);
 #if defined(AUTO_DEBUG_TILECACHE) && defined(DEBUG_TILECACHE)
     {
@@ -880,18 +1018,28 @@ void S9xSyncSpeed ()
 	    if (cu>=AUTO_DEBUG_TILECACHE)
 	    {
 		    print_tileche_eficience();
+#ifdef USE_MMU
+		    mmu_handle_quit();
+#endif
 		    exit(0);
 	    }
 	    cu++;
     }
 #endif
     static Uint32 next1=0;
-#ifdef USE_RENDER_BACK
-    static bool8 nextRenderFrame=FALSE;
-    backRenderFrame=nextRenderFrame;
+#ifdef USE_GL
+    {
+//	extern int videogl_cache_to_reseted;
+	if (videogl_cache_to_reseted) {
+		videogl_cache_to_reseted--;
+		if (!videogl_cache_to_reseted)
+			videogl_cache_reseted=1;
+	}
+    }
 #endif
-//    if (!Settings.TurboMode && Settings.SkipFrames == AUTO_FRAMERATE)
-    if (Settings.SkipFrames == AUTO_FRAMERATE)
+    static int frames_before_skip=0;
+//    backRenderThisFrame=IPPU.RenderThisFrame;
+    if (/*!Settings.TurboMode &&*/ Settings.SkipFrames == AUTO_FRAMERATE)
     {
 	Uint32 now=SDL_GetTicks();
 
@@ -911,16 +1059,17 @@ void S9xSyncSpeed ()
 	    }
 	    else
 		IPPU.RenderThisFrame = FALSE;
+	    frames_before_skip=AUTO_FRAMESKIP_DELAY;
 	}
 	else
 	{
 	    CHECK_SOUND ();
 	    if ((now+AUTO_FRAMESKIP_DELAY)<next1)
 	    {
-		if (IPPU.RenderThisFrame)
+		if (--frames_before_skip<0) //IPPU.RenderThisFrame)
 		{
 #ifdef DREAMCAST
-			SDL_Delay(1);
+//			SDL_Delay(1);
 #endif
 			do
 			{
@@ -930,9 +1079,9 @@ void S9xSyncSpeed ()
 #endif
 //			    S9xProcessEvents (FALSE);
 			    now=SDL_GetTicks();
-			} while (next1 > now);
+			} while (next1 > (now+AUTO_FRAMESKIP_DELAY));
 		}
-		next1=now;
+//		next1=now;
 	    }
 	    IPPU.RenderThisFrame = TRUE;
 	    IPPU.SkippedFrames = 0;
@@ -940,9 +1089,22 @@ void S9xSyncSpeed ()
     }
     else
     {
+#ifdef DISPLAY_FRAMERATE
+	    static Uint32 back=1000;
+	    static Uint32 nframes=0;
+	    Uint32 now=SDL_GetTicks();
+	    nframes++;
+	    if (now-back>1000) {
+//printf("%u, %u = %u\n",now,back,nframes);
+		    snes4all_frames_per_second=nframes;
+		    nframes=0;
+		    back+=1000;
+		    if (now>back)
+			   back=now;
+	    }
+#endif
 	next1 = 0;
-	if (++IPPU.FrameSkip >= (Settings.TurboMode ? Settings.TurboSkipFrames
-						    : Settings.SkipFrames))
+	if (++IPPU.FrameSkip > (/*Settings.TurboMode ? Settings.TurboSkipFrames:*/Settings.SkipFrames))
 	{
 	    IPPU.FrameSkip = 0;
 	    IPPU.SkippedFrames = 0;
@@ -954,12 +1116,10 @@ void S9xSyncSpeed ()
 	    IPPU.RenderThisFrame = FALSE;
 	}
     }
-#ifdef USE_RENDER_BACK
-    nextRenderFrame=IPPU.RenderThisFrame;
-#endif
 #ifdef DEBUG_FRAMESKIP
     debug_frameskip(IPPU.RenderThisFrame);
 #endif
+    S9xStartHDMA ();
 }
 
 
@@ -968,10 +1128,14 @@ void S9xSyncSpeed ()
 static void goMenu(void)
 {
 	int eret;
+#ifdef USE_GL
+	videogl_cache_reseted=1;
+#endif
 	snes4all_emulating=1;
 	_snes4all_sound_enable_=0;
 	while(!_snes4all_sound_enable_)
 		SDL_Delay(60);
+	snes4all_sound_enable=snes4all_sound_enable_real;
 #ifdef DEBUG_TILECACHE
 	print_tileche_eficience();
 #endif
@@ -984,11 +1148,18 @@ static void goMenu(void)
     	eret=run_mainMenu();
 	quit_text();
     	sound_disable_music();
-	if(eret==2)
+	if(eret==2) {
 		S9xReset();
+		if (snes4all_sound_enable==1)
+			snes4all_booting=200;
+	}
 	getChanges();
 	if (rom_filename[0]) {
 		CMemory_LoadROM (rom_filename);
+		if (snes4all_sound_enable==1) {
+			snes4all_booting=200;
+			snes4all_sound_enable=2;
+		}
 		eret=2;
 	}
 	if(eret==2) {
@@ -1000,9 +1171,16 @@ static void goMenu(void)
 			load_from_vmu((char *)S9xGetFilenameBase(".srm",1));
 #endif
 		CMemory_LoadSRAM (S9xGetFilename (".srm"));
+#ifdef USE_MMU
+		set_mmu_mappings();
+#endif
 	}
 	SDL_FillRect(screen,NULL,0);
 	_snes4all_sound_enable_=snes4all_sound_enable;
+	if (savestate_state) {
+		snes4all_booting=0;
+		snes4all_sound_enable=snes4all_sound_enable_real;
+	}
 }
 
 static void keyprocess(SDLKey key, SDL_bool pressed)
@@ -1244,6 +1422,12 @@ void S9xSaveStateProcess(void) {
 		case 3: strcpy(fname, S9xGetFilename(".3ssn")); strcpy(fnamebase, S9xGetFilenameBase(".3ssn",1));break;
 		default: strcpy(fname, S9xGetFilename(".ssn")); strcpy(fnamebase, S9xGetFilenameBase(".ssn",1));
 	}
+#ifdef USE_GL
+	if (savestate_state&1)
+		S9xSetInfoString("Saving Savestate");
+	else
+		S9xSetInfoString("Loading Savestate");
+#endif
 	if (savestate_state<0) {
 		if (savestate_state<-10) {
 			savestate_state+=10;
@@ -1256,19 +1440,48 @@ void S9xSaveStateProcess(void) {
 	while(!_snes4all_sound_enable_)
 		SDL_Delay(60);
 	if  (savestate_state==1){
+#ifndef USE_GL
 		show_please_wait(" Saving state",screen);
-    		S9xFreezeGame (fname);
+#endif
+    		int ret=S9xFreezeGame (fname);
+#ifdef USE_GL
+		if (ret)
+			S9xSetInfoString("Savestate saved");
+		else
+			S9xSetInfoString("Savestate save ERROR");
+#endif
 #ifdef DREAMCAST
-		if (!sdcard_exists) 
-			save_to_vmu(fnamebase);
+		if (!sdcard_exists && ret)  {
+			ret=save_to_vmu(fnamebase);
+#ifdef USE_GL
+			if (!ret)
+				S9xSetInfoString("VMU Savestate save ERROR");
+#endif
+		}
 #endif
 	} else if  (savestate_state==2) {
+#ifndef USE_GL
 		show_please_wait(" Loading state",screen);
-#ifdef DREAMCAST
-		if (!sdcard_exists) 
-			load_from_vmu(fnamebase);
 #endif
-		S9xLoadSnapshot (fname);
+		int ret=1;
+#ifdef DREAMCAST
+		if (!sdcard_exists) {
+			ret=load_from_vmu(fnamebase);
+#ifdef USE_GL
+			if (!ret)
+				S9xSetInfoString("VMU Savestate load ERROR");
+#endif
+		}
+#endif
+		if (ret) {
+			ret=S9xLoadSnapshot (fname);
+#ifdef USE_GL
+			if (ret)
+				S9xSetInfoString("Savestate loaded");
+			else
+				S9xSetInfoString("Savestate load ERROR");
+#endif
+		}
 	}
 	debug_reset_frameskip();
 	_snes4all_sound_enable_=snes4all_sound_enable;
@@ -1277,9 +1490,40 @@ void S9xSaveStateProcess(void) {
 
 void S9xProcessEvents (bool8 block)
 {
+#ifdef AUTO_LOADSAVESTATE
+	static int yet_loaded=0;
+	if (!yet_loaded) {
+		S9xLoadSnapshot (AUTO_LOADSAVESTATE);
+//Settings.Transparency=0;
+		yet_loaded=1;
+	}
+#endif
 #ifdef AUTO_EVENTS
 	static unsigned cuenta=0;
 
+//printf("Event %i\n",cuenta);
+#ifdef DEBUG_CPU
+	if (cuenta>=DEBUG_CPU) {
+		cpu_debugging=1;
+		printf("---- EVENT %i ----\n",cuenta);
+	}
+#endif
+#ifdef DEBUG_CPU_END
+	if (cuenta>=DEBUG_CPU_END) {
+#ifdef USE_MMU
+		mmu_handle_quit();
+#endif
+		exit(0);
+	}
+#endif
+
+/* JAMESPOND:
+if (cuenta==10) joypad_val[0]|=SNES_START_MASK;
+else if (cuenta==12) joypad_val[0]^=SNES_START_MASK;
+else if (cuenta==15) joypad_val[0]|=SNES_Y_MASK; */
+if (cuenta==2) joypad_val[0]|=SNES_START_MASK;
+else if (cuenta==4) joypad_val[0]^=SNES_START_MASK;
+#if 0
 	switch(cuenta&127)
 	{
 		case 3:
@@ -1289,6 +1533,7 @@ void S9xProcessEvents (bool8 block)
 			joypad_val[0]^=SNES_START_MASK;
 			break;
 	}
+#endif
 #ifdef MAX_AUTO_EVENTS
 	if (cuenta>MAX_AUTO_EVENTS)
 	{
@@ -1300,6 +1545,9 @@ void S9xProcessEvents (bool8 block)
 #endif
 #ifdef DEBUG_TILECACHE
 		print_tileche_eficience();
+#endif
+#ifdef USE_MMU
+		mmu_handle_quit();
 #endif
 		exit(0);
 	}
@@ -1326,11 +1574,19 @@ void S9xProcessEvents (bool8 block)
 			{
 				if (start_holded) {
 					if (event.jaxis.value<-120) {
+#ifdef USE_GL
+						savestate_tostate=-41;
+#else
 						savestate_tostate=1;
+#endif
 						keyprocess(SDLK_RETURN,SDL_FALSE);
 						start_holded=FALSE;
 					} else if (event.jaxis.value>120) {
+#ifdef USE_GL
+						savestate_tostate=-42;
+#else
 						savestate_tostate=2;
+#endif
 						keyprocess(SDLK_RETURN,SDL_FALSE);
 						start_holded=FALSE;
 					}
@@ -1345,7 +1601,7 @@ void S9xProcessEvents (bool8 block)
 				if (event.jaxis.value>100)
 					joypad_val[event.jaxis.which]|=SNES_SELECT_MASK;
 				else 
-					joypad_val[event.jaxis.which]^=SNES_SELECT_MASK;
+					joypad_val[event.jaxis.which]&=~SNES_SELECT_MASK;
 			}
 			break;
 #endif
@@ -1534,8 +1790,9 @@ static uint8 Buf[MAX_BUFFER_SIZE*2];
 
 void S9xGenerateSound ()
 {
+//puts("/");
 #ifndef NOSOUND
-    if (_snes4all_sound_enable_<2)
+    if (_snes4all_sound_enable_<3)
 	    return;
     int buffer_size = so.buffer_size;
     int bytes_so_far = (so.samples_mixed_so_far << 1);
@@ -1555,9 +1812,11 @@ void S9xGenerateSound ()
 	    sample_count <<= 1;
 #endif
 	byte_offset = bytes_so_far + so.play_position;
-	    
+	
+//unsigned ndo=0;	
 	do
 	{
+// printf("do%i\n",ndo++);
 	    int sc = sample_count;
 	    int byte_count = sample_count;
 	    byte_count <<= 1;
@@ -1588,6 +1847,7 @@ void S9xGenerateSound ()
 	} while (sample_count > 0);
     }
 #endif
+// puts("\\");
 }
 
 
@@ -1634,27 +1894,51 @@ uint32 S9xReadJoypad (int which1)
 }
 
 #if 0
-	ndef _ZAURUS
 static int S9xCompareSDD1IndexEntries (const void *p1, const void *p2)
 {
     return (*(uint32 *) p1 - *(uint32 *) p2);
 }
+#endif
 
 void S9xLoadSDD1Data ()
 {
     char filename [_MAX_PATH + 1];
+#if 0
     char index [_MAX_PATH + 1];
     char data [_MAX_PATH + 1];
     char patch [_MAX_PATH + 1];
+#endif
 
     CMemory_FreeSDD1Data ();
 
     strcpy (filename, S9xGetSnapshotDirectory ());
 
-    if (strncmp (CMemory_ROMName, "Star Ocean", 10) == 0)
+    Settings.SDD1Pack=FALSE;
+    if (strncmp (CMemory_ROMName, "Star Ocean", 10) == 0){
+        /*if(SDD1_pack) strcpy (filename, SDD1_pack);*/
+#ifdef SDD1_DECOMP
+        /*else*/ Settings.SDD1Pack=TRUE;
+#else
 	strcat (filename, "/socnsdd1");
-    else
+#endif
+    } else if(strncmp(CMemory_ROMName, "STREET FIGHTER ALPHA2", 21)==0){
+        /*if(SDD1_pack) strcpy (filename, SDD1_pack);*/
+#ifdef SDD1_DECOMP
+        /*else*/ Settings.SDD1Pack=TRUE;
+#else
 	strcat (filename, "/sfa2sdd1");
+#endif
+    } else {
+        /*if(SDD1_pack) strcpy (filename, SDD1_pack);*/
+#ifdef SDD1_DECOMP
+        /*else*/ Settings.SDD1Pack=TRUE;
+#else
+	S9xMessage(S9X_WARNING, S9X_ROM_INFO, "WARNING: No default SDD1 pack for this ROM");
+#endif
+    }
+
+#if 0
+    if(Settings.SDD1Pack) return;
 
     DIR *dir = opendir (filename);
 
@@ -1748,16 +2032,11 @@ void S9xLoadSDD1Data ()
 	}
 	else
 	{
-	    printf ("Decompressed data pack not found in '%s'.\n", filename);
+	    fprintf (stderr, "Decompressed data pack not found in '%s'.\n", 
+                     filename);
 	}
     }
-}
 #endif
-
-/*
-extern "C"
-void salida(unsigned a, unsigned b, unsigned c, unsigned d) {
-	printf("\n\n\n\nSALIMOS %p, %p, %p, %p\n",a,b,c,d);
-	exit(0);
 }
-*/
+
+

@@ -67,11 +67,14 @@
 #include "keydef.h"
 
 #include "snes4all.h"
+#include "videogl.h"
 
 #define COUNT(a) (sizeof(a) / sizeof(a[0]))
 
 SDL_Surface *screen, *gfxscreen;
+#if 0
 uint16 *RGBconvert;
+#endif
 extern uint32 cl, cs;
 
 #if 0
@@ -134,6 +137,7 @@ void S9xInitDisplay (int /*argc*/, char ** /*argv*/)
 #if defined(DREAMCAST) && defined(DEBUG_FRAMESKIP)
 	SDL_DC_ShowAskHz(SDL_FALSE);
 #endif
+#ifndef USE_GL
 #if defined(DREAMCAST) && !defined(NORES256)
 	SDL_DC_SetVideoDriver(SDL_DC_TEXTURED_VIDEO);
 	screen = SDL_SetVideoMode(SNES4ALL_SCREEN_WIDTH, SNES4ALL_SCREEN_WIDTH, SNES4ALL_SCREEN_DEPTH, flags);
@@ -142,6 +146,9 @@ void S9xInitDisplay (int /*argc*/, char ** /*argv*/)
 	screen = SDL_SetVideoMode(SNES4ALL_SCREEN_WIDTH, SNES4ALL_SCREEN_HEIGHT, SNES4ALL_SCREEN_DEPTH, flags);
 #endif
 	if (screen == NULL)
+#else
+	if (!videogl_init())
+#endif
 	{
 		printf("Couldn't set video mode: %s\n", SDL_GetError());
 		S9xExit();
@@ -162,10 +169,11 @@ void S9xInitDisplay (int /*argc*/, char ** /*argv*/)
 #endif
 	;
 	GFX.Pitch = SNES4ALL_SCREEN_PITCH;
-	GFX.SubScreen = (uint8 *)malloc(512 * 480 * SNES4ALL_SCREEN_DEPTH_BYTES);
-	GFX.ZBuffer = (uint8 *)malloc(512 * 480 * SNES4ALL_SCREEN_DEPTH_BYTES);
-	GFX.SubZBuffer = (uint8 *)malloc(512 * 480 * SNES4ALL_SCREEN_DEPTH_BYTES);
+	GFX.SubScreen = (uint8 *)calloc(512 * 480, SNES4ALL_SCREEN_DEPTH_BYTES);
+	GFX.ZBuffer = (uint8 *)calloc(512 * 480, SNES4ALL_SCREEN_DEPTH_BYTES);
+	GFX.SubZBuffer = (uint8 *)calloc(512 * 480, SNES4ALL_SCREEN_DEPTH_BYTES);
 
+#if 0
 	RGBconvert = (uint16 *)malloc(65536 * SNES4ALL_SCREEN_DEPTH_BYTES);
 	if (!RGBconvert)
 	{
@@ -174,6 +182,7 @@ void S9xInitDisplay (int /*argc*/, char ** /*argv*/)
 	}
 	for (uint32 i = 0; i < 65536; i++) 
 		((uint16 *)(RGBconvert))[i] = ((i >> 11) << 10) | ((((i >> 5) & 63) >> 1) << 5) | (i & 31);
+#endif
 	reinit_sdcard();
 }
 
@@ -265,7 +274,12 @@ void JustifierButtons(uint32 justifiers)
 
 void S9xMessage (int /* type */, int /* number */, const char *message)
 {
+#ifdef USE_GL
+	S9xSetInfoString(message);
+#endif
+#ifndef DREAMCAST
     fprintf (stderr, "%s\n", message);
+#endif
 }
 
 
@@ -448,11 +462,12 @@ void snes4all_prof_show(void)
 }
 #endif
 
-/*
-extern "C" {
-void mirame(void)
+/* extern "C" {
+unsigned mirame(unsigned dato)
 {
-	IAPU.NextAPUTimerPos -= snes4all_apu_hmax;
+	if (!dato) goto salta;
+	asm("nop;nop;"); return 1;
+salta:
+	asm("nop;nop;"); return 0;
 }
-}
-*/
+}*/ 

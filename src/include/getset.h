@@ -126,7 +126,11 @@ INLINE uint8 S9xGetByte (uint32 Address)
 #endif
 			CPU.WaitAddress = CPU.PCAtOpcodeStart;
 #endif
+#ifndef USE_MMU
 		return (*(GetAddress + (Address & 0xffff)));
+#else
+		return (*((unsigned char *)(Address /*& 0xFFFFFFF*/)));
+#endif
     }
 	
     switch ((int) GetAddress)
@@ -178,16 +182,6 @@ INLINE uint8 S9xGetByte (uint32 Address)
 	case CMemory_MAP_SETA_RISC:
 		return S9xGetST018(Address);
 
-
- 
-     case CMemory_MAP_DEBUG:
- #ifdef DEBUGGER
- 		printf ("DEBUG R(B) %06x\n", Address);
- #endif
- 		return OpenBus;
- 
-
-
 	default:
     case CMemory_MAP_NONE:
 #ifdef MK_TRACE_BAD_READS
@@ -196,9 +190,6 @@ INLINE uint8 S9xGetByte (uint32 Address)
 		MessageBox(GUI.hWnd, address, TEXT("GetByte"), MB_OK);
 #endif
 
-#ifdef DEBUGGER
-		printf ("R(B) %06x\n", Address);
-#endif
 		return OpenBus;
     }
 }
@@ -230,10 +221,19 @@ INLINE uint16 S9xGetWord (uint32 Address)
 			CPU.WaitAddress = CPU.PCAtOpcodeStart;
 #endif
 #ifdef FAST_LSB_WORD_ACCESS
+#ifndef USE_MMU
 		return (*(uint16 *) (GetAddress + (Address & 0xffff)));
 #else
+		return (*((unsigned short*)(Address /*& 0xFFFFFFF*/)));
+#endif
+#else
+#ifndef USE_MMU
 		return (*(GetAddress + (Address & 0xffff)) |
 			(*(GetAddress + (Address & 0xffff) + 1) << 8));
+#else
+		return ((*((unsigned char*)(Address /*& 0xFFFFFFF*/))) |
+			(((*((unsigned char*)((Address+1) /*& 0xFFFFFFF*/)))) << 8));
+#endif
 #endif	
     }
 
@@ -310,23 +310,12 @@ INLINE uint16 S9xGetWord (uint32 Address)
 	case CMemory_MAP_SETA_RISC:
 		return S9xGetST018(Address)| (S9xGetST018((Address+1))<<8);
 
-     case CMemory_MAP_DEBUG:
- #ifdef DEBUGGER
- 		printf ("DEBUG R(W) %06x\n", Address);
- #endif
- 		return (OpenBus | (OpenBus<<8));
-
-
     default:
     case CMemory_MAP_NONE:
 #ifdef MK_TRACE_BAD_READS
 		char address[20];
 		sprintf(address, TEXT("%06X"),Address);
 		MessageBox(GUI.hWnd, address, TEXT("GetWord"), MB_OK);
-#endif
-
-#ifdef DEBUGGER
-		printf ("R(W) %06x\n", Address);
 #endif
 		return (OpenBus | (OpenBus<<8));
     }
@@ -347,7 +336,8 @@ INLINE void S9xSetByte (uint8 Byte, uint32 Address)
 		CPU.Cycles += 8;
 #endif
 
-	
+
+//printf("SetByte(%.2X, %.8X) (%p)\n",Byte,Address,SetAddress);	
     if (SetAddress >= (uint8 *) CMemory_MAP_LAST)
     {
 #ifdef CPU_SHUTDOWN
@@ -358,9 +348,18 @@ INLINE void S9xSetByte (uint8 Byte, uint32 Address)
 			SA1.Executing = SA1.S9xOpcodes != NULL;
 			SA1.WaitCounter = 0;
 		}
+#ifndef USE_MMU
 		*SetAddress = Byte;
 #else
+		*((unsigned char *)(Address /*& 0xFFFFFFF*/)) = Byte;
+#endif
+	
+#else
+#ifndef USE_MMU
 		*(SetAddress + (Address & 0xffff)) = Byte;
+#else
+		*((unsigned char *)(Address /*& 0xFFFFFFF*/)) = Byte;
+#endif
 #endif
 		return;
     }
@@ -405,11 +404,6 @@ INLINE void S9xSetByte (uint8 Byte, uint32 Address)
 		CPU.SRAMModified = TRUE;
 		return;
 		
-    case CMemory_MAP_DEBUG:
-#ifdef DEBUGGER
-		printf ("W(B) %06x\n", Address);
-#endif
-		
     case CMemory_MAP_SA1RAM:
 		*(CMemory_SRAM + (Address & 0xffff)) = Byte;
 		SA1.Executing = !SA1.Waiting;
@@ -444,10 +438,6 @@ INLINE void S9xSetByte (uint8 Byte, uint32 Address)
 		sprintf(address, TEXT("%06X"),Address);
 		MessageBox(GUI.hWnd, address, TEXT("SetByte"), MB_OK);
 #endif
-
-#ifdef DEBUGGER
-		printf ("W(B) %06x\n", Address);
-#endif
 		return;
     }
 }
@@ -471,7 +461,7 @@ INLINE void S9xSetWord (uint16 Word, uint32 Address)
 #ifdef USE_MEMORY_SPEED
 		CPU.Cycles += CMemory_MemorySpeed [block] << 1;
 #else
-		CPU.Cycles += 8;
+		CPU.Cycles += 16; //8;
 #endif
 
 
@@ -486,17 +476,35 @@ INLINE void S9xSetWord (uint16 Word, uint32 Address)
 			SA1.WaitCounter = 0;
 		}
 #ifdef FAST_LSB_WORD_ACCESS
+#ifndef USE_MMU
 		*(uint16 *) SetAddress = Word;
 #else
+		*((unsigned short *)(Address /*& 0xFFFFFFF*/)) = Word;
+#endif
+#else
+#ifndef USE_MMU
 		*SetAddress = (uint8) Word;
 		*(SetAddress + 1) = Word >> 8;
+#else
+		*((unsigned char *)(Address /*& 0xFFFFFFF*/)) = (uint8)Word;
+		*((unsigned char *)((Address+1) /*& 0xFFFFFFF*/)) = Word >> 8;
+#endif
 #endif
 #else
 #ifdef FAST_LSB_WORD_ACCESS
+#ifndef USE_MMU
 		*(uint16 *) (SetAddress + (Address & 0xffff)) = Word;
 #else
+		*((unsigned short *)(Address /*& 0xFFFFFFF*/)) = Word;
+#endif
+#else
+#ifndef USE_MMU
 		*(SetAddress + (Address & 0xffff)) = (uint8) Word;
 		*(SetAddress + ((Address + 1) & 0xffff)) = Word >> 8;
+#else
+		*((unsigned char *)(Address /*& 0xFFFFFFF*/)) = (uint8)Word;
+		*((unsigned char *)((Address+1) /*& 0xFFFFFFF*/)) = Word >> 8;
+#endif
 #endif
 #endif
 		return;
@@ -561,11 +569,6 @@ INLINE void S9xSetWord (uint16 Word, uint32 Address)
 		CPU.SRAMModified = TRUE;
 		return;
 		
-    case CMemory_MAP_DEBUG:
-#ifdef DEBUGGER
-		printf ("W(W) %06x\n", Address);
-#endif
-	
 	case CMemory_MAP_SPC7110_DRAM:
 #ifdef SPC7110_DEBUG
 		printf("Writing Word at %06X\n", Address);
@@ -607,9 +610,6 @@ INLINE void S9xSetWord (uint16 Word, uint32 Address)
 		MessageBox(GUI.hWnd, address, TEXT("SetWord"), MB_OK);
 #endif
 
-#ifdef DEBUGGER
-		printf ("W(W) %06x\n", Address);
-#endif
 		return;
     }
 }
@@ -617,8 +617,13 @@ INLINE void S9xSetWord (uint16 Word, uint32 Address)
 INLINE uint8 *GetBasePointer (uint32 Address)
 {
     uint8 *GetAddress = CMemory_Map [(Address >> MEMMAP_SHIFT) & MEMMAP_MASK];
+//printf("GetBasePointer(%.8X) (%p)\n",Address,GetAddress);
     if (GetAddress >= (uint8 *) CMemory_MAP_LAST)
+#if !defined(USE_MMU) || defined(USE_MMU_BASEPOINTER)
 		return (GetAddress);
+#else
+    		return (uint8*)(Address&0xff0000);
+#endif
 	if(Settings.SPC7110&&((Address&0x7FFFFF)==0x4800))
 	{
 		return s7r.bank50;
@@ -639,13 +644,16 @@ INLINE uint8 *GetBasePointer (uint32 Address)
 		return Get7110BasePtr(Address);
     case CMemory_MAP_PPU:
 //just a guess, but it looks like this should match the CPU as a source.
+//return (uint8*)(0);
 		return (CMemory_FillRAM);
 //		return (CMemory_FillRAM - 0x2000);
     case CMemory_MAP_CPU:
 //fixes Ogre Battle's green lines
+//return (uint8*)(0);
 		return (CMemory_FillRAM);
 //		return (CMemory_FillRAM - 0x4000);
     case CMemory_MAP_DSP:
+//return (uint8*)(- 0x6000);
 		return (CMemory_FillRAM - 0x6000);
     case CMemory_MAP_SA1RAM:
     case CMemory_MAP_LOROM_SRAM:
@@ -660,11 +668,6 @@ INLINE uint8 *GetBasePointer (uint32 Address)
 		return GetBasePointerOBC1(Address);
 	case CMemory_MAP_SETA_DSP:
 		return CMemory_SRAM;
-    case CMemory_MAP_DEBUG:
-#ifdef DEBUGGER
-		printf ("GBP %06x\n", Address);
-#endif
-		
     default:
     case CMemory_MAP_NONE:
 #if defined(MK_TRACE_BAD_READS) || defined(MK_TRACE_BAD_WRITES)
@@ -673,10 +676,11 @@ INLINE uint8 *GetBasePointer (uint32 Address)
 		MessageBox(GUI.hWnd, fsd, TEXT("Rogue DMA"), MB_OK);
 #endif
 
-#ifdef DEBUGGER
-		printf ("GBP %06x\n", Address);
-#endif
+#ifndef USE_MMU
 		return (0);
+#else
+		return ((uint8 *)-1);
+#endif
     }
 }
 
@@ -684,7 +688,11 @@ INLINE uint8 *S9xGetMemPointer (uint32 Address)
 {
     uint8 *GetAddress = CMemory_Map [(Address >> MEMMAP_SHIFT) & MEMMAP_MASK];
     if (GetAddress >= (uint8 *) CMemory_MAP_LAST)
+#ifndef USE_MMU 
 		return (GetAddress + (Address & 0xffff));
+#else
+    		return ((uint8 *)(Address /*& 0xFFFFFFF*/));
+#endif
 	
 	if(Settings.SPC7110&&((Address&0x7FFFFF)==0x4800))
 		return s7r.bank50;
@@ -715,10 +723,6 @@ INLINE uint8 *S9xGetMemPointer (uint32 Address)
 		return GetMemPointerOBC1(Address);
 	case CMemory_MAP_SETA_DSP:
 		return CMemory_SRAM+ ((Address & 0xffff) & CMemory_SRAMMask);
-    case CMemory_MAP_DEBUG:
-#ifdef DEBUGGER
-		printf ("GMP %06x\n", Address);
-#endif
     default:
     case CMemory_MAP_NONE:
 #if defined(MK_TRACE_BAD_READS) || defined(MK_TRACE_BAD_WRITES)
@@ -727,9 +731,6 @@ INLINE uint8 *S9xGetMemPointer (uint32 Address)
 		MessageBox(GUI.hWnd, fsd, TEXT("Rogue DMA"), MB_OK);
 #endif
 
-#ifdef DEBUGGER
-		printf ("GMP %06x\n", Address);
-#endif
 		return (0);
     }
 }
@@ -746,8 +747,14 @@ INLINE void S9xSetPCBase (uint32 Address)
  
    if (GetAddress >= (uint8 *) CMemory_MAP_LAST)
     {
+#ifndef USE_MMU
 		CPU.PCBase = GetAddress;
 		CPU.PC = GetAddress + (Address & 0xffff);
+#else
+		CPU.PCBase = (uint8 *)(Address & 0xfff0000);
+		CPU.PC = (uint8 *)(Address /*& 0xfffffff*/);
+//printf("SetPCBase %.6X, Base=%.6X PC=%4.X\n",Address,CPU.PCBase,CPU.PC);
+#endif
 		return;
     }
 	
@@ -788,16 +795,8 @@ INLINE void S9xSetPCBase (uint32 Address)
 		CPU.PC = CPU.PCBase + (Address & 0xffff);
 		return;
 		
-    case CMemory_MAP_DEBUG:
-#ifdef DEBUGGER
-		printf ("SBP %06x\n", Address);
-#endif
-		
     default:
     case CMemory_MAP_NONE:
-#ifdef DEBUGGER
-		printf ("SBP %06x\n", Address);
-#endif
 		CPU.PCBase = CMemory_SRAM;
 		CPU.PC = CMemory_SRAM + (Address & 0xffff);
 		return;

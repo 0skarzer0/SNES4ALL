@@ -108,8 +108,6 @@
 START_EXTERN_C
 char String[513];
 
-struct Missing missing;
-
 #if !defined(DREAMCAST) || !defined(USE_OPC_ASM)
 struct SRegisters Registers;
 struct SAPURegisters APURegisters;
@@ -120,6 +118,10 @@ struct SAPU APU;
 struct SIAPU IAPU;
 struct SSA1 SA1;
 struct SSettings Settings;
+#else
+#ifndef USE_MMU
+struct SSA1Registers SA1Registers;
+#endif
 #endif
 struct SDSP1 DSP1;
 

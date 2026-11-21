@@ -1,6 +1,7 @@
 #USE_CPUASM=1
 #USE_MMX=1
 #USE_ZSNES_FX=1
+USE_GL=1
 
 
 NAME   = snes4all
@@ -14,7 +15,11 @@ STRIP  = strip
 PROG   = $(NAME)
 
 DEFS += -DSNES4ALL_MAX_ROM_SIZE=0x600000 
+ifdef USE_GL
+DEFS += -DUSE_GL
+else
 #DEFS += -DNORES256
+endif
 
 DEFS += -DCPU_SHUTDOWN
 DEFS += -DSPC700_SHUTDOWN 
@@ -22,6 +27,8 @@ DEFS += -DEXECUTE_SUPERFX_PER_LINE
 DEFS += -DSPC700_C
 DEFS += -DVAR_CYCLES
 DEFS += -DSDD1_DECOMP
+DEFS += -DUSE_NO_WAIT_WHEN_IRQ
+DEFS += -DUSE_OLD_DSP1
 #DEFS += -DNO_INLINE_SET_GET
 #DEFS += -DENABLE_ECHO_SOUND
 #DEFS += -DENABLE_MASTER_VOLUMEN
@@ -32,13 +39,17 @@ DEFS += -DSDD1_DECOMP
 #DEFS += -DUSE_MODE7_INTERPOLATE
 DEFS += -DENABLE_GRAPHIC_WINDOWS
 DEFS += -DENABLE_HDMA
+#DEFS += -DUSE_HDMA_EVENT
 #DEFS += -DNEW_COLOUR_BLENDING
 #DEFS += -DOLD_COLOUR_BLENDING
 #DEFS += -DSNES4ALL_NUM_CHANNELS=6
 #DEFS += -DSNES4ALL_STEREO
-DEFS += -DDIRECT_COLOR_MAP
+#DEFS += -DDIRECT_COLOR_MAP
 #DEFS += -DTEST_CACHETILE
 #DEFS += -DTILES_INLINE
+DEFS += -DUSE_RASTER_DIFF
+DEFS += -DUSE_GETPPU_TABLE
+
 
 #DEFS += -DNOSOUND
 
@@ -86,21 +97,19 @@ CPPFLAGS  = $(DEFAULT_CFLAGS) $(MORE_CFLAGS)
 
 OBJS =	\
 	src/2xsai.o \
+	src/memmap.o \
 	src/apu.o \
-	src/apudebug.o \
 	src/c4.o \
 	src/cheats.o \
 	src/cheats2.o \
 	src/clip.o \
 	src/cpu.o \
 	src/data.o \
-	src/debug.o \
 	src/dma.o \
 	src/dsp1.o \
 	src/gfx.o \
 	src/globals.o \
 	src/loadzip.o \
-	src/memmap.o \
 	src/netplay.o \
 	src/obc1.o \
 	src/ppu.o \
@@ -115,7 +124,6 @@ OBJS =	\
 	src/seta018.o \
 	src/snaporig.o \
 	src/snapshot.o \
-	src/snes9x.o \
 	src/soundux.o \
 	src/spc700.o \
 	src/spc7110.o \
@@ -133,6 +141,12 @@ OBJS =	\
 	src/menu/menu_main.o \
 	src/menu/menu_save.o \
 	src/menu/menu_load.o
+
+ifdef USE_GL
+OBJS += \
+	src/sdl/videogl.o \
+	src/tilegl.o
+endif
 
 ifdef USE_CPUASM
 OBJS += \
@@ -214,6 +228,10 @@ src/i386/zsnesc4.o: src/i386/zsnesc4.asm
 
 
 $(PROG): $(OBJS)
+ifdef USE_GL
+	$(CC) -L/usr/lib/mingw -L/usr/local/lib  -L/usr/lib/w32api/ -L/usr/X11R6/lib -lglu32 -lopengl32 -o $(PROG) -lmingw32 $(OBJS)  -lglu32  -lopengl32 -lSDL_static_1212 -lGL -lpthread -mwindows -mno-cygwin -luser32 -lgdi32 -lwinmm -ldxguid
+else
 	$(CC) -L/usr/lib/mingw -L/usr/local/lib -o $(PROG) -lmingw32 $(OBJS) -lz -lSDL_static_129 -mwindows -mno-cygwin -luser32 -lgdi32 -lwinmm -ldxguid
+endif
 	$(STRIP) $(PROG).exe
 

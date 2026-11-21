@@ -240,8 +240,10 @@ void S9xSpc7110Init()
 	(*LoadUp7110)(osd_GetPackDir());
 #endif
 
+#if 0
 	if(Settings.SPC7110RTC)
 		Settings.TurboMode=false;
+#endif
 
 	s7r.bank50Internal=0;
 	memset(s7r.bank50,0x00,DECOMP_BUFFER_SIZE);

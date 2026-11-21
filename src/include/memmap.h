@@ -211,10 +211,16 @@ extern uint8 CMemory_RAM[0x20000];
 extern uint8 CMemory_VRAM[0x10000];
 extern uint8 CMemory_SRAM[0x20000];
 extern uint8 CMemory_FillRAM[SNES4ALL_MAX_ROM_SIZE + 0x200 +0x8000];
-//extern uint8 CMemory_ROM[SNES4ALL_MAX_ROM_SIZE + 0x200] __attribute__ ((alias ("CMemory_FillRAM"+0x8000)));
-//extern uint8 CMemory_C4RAM[SNES4ALL_MAX_ROM_SIZE + 0x200 + 0x8000 - 0x400000 - 0x10000] __attribute__ ((alias ("CMemory_FillRAM + 0x8000 + 0x400000 + 0x10000")));
+//extern uint8 CMemory_FillRAM[SNES4ALL_MAX_ROM_SIZE + 0x200 +0x8000] __asm__ ("0x00000000");
+#if defined(DREAMCAST) || defined(WIN32)
+extern uint8 CMemory_ROM[SNES4ALL_MAX_ROM_SIZE + 0x200] __asm__ ("_CMemory_FillRAM + 0x8000");
+extern uint8 CMemory_C4RAM[SNES4ALL_MAX_ROM_SIZE + 0x200 + 0x8000 - 0x400000 - 0x10000] __asm__ ("_CMemory_FillRAM + 0x8000 + 0x400000 + 0x10000");
+//extern uint8 CMemory_ROM[SNES4ALL_MAX_ROM_SIZE + 0x200] __asm__ ("0x8000");
+//extern uint8 CMemory_C4RAM[SNES4ALL_MAX_ROM_SIZE + 0x200 + 0x8000 - 0x400000 - 0x10000] __asm__ ("0x8000 + 0x400000 + 0x10000");
+#else
 extern uint8 CMemory_ROM[SNES4ALL_MAX_ROM_SIZE + 0x200] __asm__ ("CMemory_FillRAM + 0x8000");
 extern uint8 CMemory_C4RAM[SNES4ALL_MAX_ROM_SIZE + 0x200 + 0x8000 - 0x400000 - 0x10000] __asm__ ("CMemory_FillRAM + 0x8000 + 0x400000 + 0x10000");
+#endif
 #endif
 extern uint8 *CMemory_BWRAM;
 extern bool8 CMemory_HiROM;
@@ -286,7 +292,7 @@ END_EXTERN_C
 
 void S9xAutoSaveSRAM ();
 
-#ifdef NO_INLINE_SET_GET
+#if defined(NO_INLINE_SET_GET) || defined(USE_MMU)
 uint8 S9xGetByte (uint32 Address);
 uint16 S9xGetWord (uint32 Address);
 void S9xSetByte (uint8 Byte, uint32 Address);

@@ -28,12 +28,11 @@
 #else
 #define Flags @(20+16, r11)
 #define BranchSkip @(3, r11)
-#define NMIActive @(4+16, r11)
+#define NMIActive @(4, r11)
 #define IRQActive @(5, r11)
 #define WaitingForInterrupt @(6, r11)
 #define InDMA @(7, r11)
-#define WhichEvent @(8+16, r11)
-#define WhichEvent_m @(8, r11)
+#define WhichEvent @(8, r11)
 #define PCS @(24+16, r11)
 #define PCBase @(28+16, r11)
 #define PCAtOpcodeStart @(32+16, r11)
@@ -315,4 +314,8 @@
 #define PPU @(60, r14)
 #define SA1Map_offs 64
 #define SA1WriteMap_offs 16448
+#ifdef USE_ASM_R12
 #define NMITriggerPoint_offs 72
+#else
+#define NMITriggerPoint_offs 72+16
+#endif

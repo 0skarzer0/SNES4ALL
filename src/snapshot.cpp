@@ -149,6 +149,9 @@ struct SnapshotMovieInfo
 	uint32	MovieInputDataSize;
 };
 
+void MemSpeedx2_hack_save(void);
+void MemSpeedx2_hack_load(void);
+
 #undef OFFSET
 #define OFFSET(f) Offset(f,struct SnapshotMovieInfo *)
 
@@ -577,8 +580,10 @@ bool8 S9xFreezeGame (const char *filename)
 		S9xFreezeToStream (stream);
 		S9xCloseSnapshotFile (stream);
 
+#ifndef USE_GL
 		sprintf(String, "Saved %s", S9xBasename (filename));
 		S9xMessage (S9X_INFO, S9X_FREEZE_FILE_INFO, String);
+#endif
 
 #if !defined(DREAMCAST) || !defined(USE_OPC_ASM)
 		Registers.PC = backpc;
@@ -591,6 +596,12 @@ bool8 S9xFreezeGame (const char *filename)
 
 bool8 S9xUnfreezeGame (const char *filename)
 {
+#ifdef USE_GL
+	extern unsigned char videogl_brightness;
+	extern unsigned char videogl_first_brightness;
+	videogl_cache_reseted=1;
+	videogl_brightness=~videogl_first_brightness;
+#endif
     if (S9xLoadOrigSnapshot (filename))
 		return (TRUE);
 	
@@ -632,9 +643,12 @@ bool8 S9xUnfreezeGame (const char *filename)
 			return (FALSE);
 		}
 
+#ifndef USE_GL
 		sprintf(String, "Loaded %s", S9xBasename (filename));
 		S9xMessage (S9X_INFO, S9X_FREEZE_FILE_INFO, String);
+#endif
 
+    		MemSpeedx2_hack_load();
 		S9xCloseSnapshotFile (snapshot);
 		return (TRUE);
     }
@@ -671,7 +685,9 @@ void S9xFreezeToStream (STREAM stream)
     sprintf (buffer, "NAM:%06d:%s%c", strlen (CMemory_ROMFilename) + 1,
 		CMemory_ROMFilename, 0);
     WRITE_STREAM (buffer, strlen (buffer) + 1, stream);
+    MemSpeedx2_hack_save();
     FreezeStruct (stream, "CPU", &CPU, SnapCPU, COUNT (SnapCPU));
+    CPU.MemSpeedx2=CPU.MemSpeed << 1;
     FreezeStruct (stream, "REG", &Registers, SnapRegisters, COUNT (SnapRegisters));
     FreezeStruct (stream, "PPU", &PPU, SnapPPU, COUNT (SnapPPU));
     FreezeStruct (stream, "DMA", DMA, SnapDMA, COUNT (SnapDMA));
@@ -717,6 +733,10 @@ void S9xFreezeToStream (STREAM stream)
 		S9xSuperFXPostSaveState ();
 #endif
 }
+
+#ifdef USE_MMU
+void set_mmu_mappings(void);
+#endif
 
 int S9xUnfreezeFromStream (STREAM stream)
 {
@@ -937,6 +957,9 @@ int S9xUnfreezeFromStream (STREAM stream)
 	if (local_spc_rtc)       free(local_spc_rtc); //delete [] local_spc_rtc;
 	if (local_movie_data)    free(local_movie_data); //delete [] local_movie_data;
 
+#ifdef USE_MMU
+	set_mmu_mappings();
+#endif
 	return (result);
 }
 

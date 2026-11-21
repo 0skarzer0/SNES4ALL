@@ -310,8 +310,30 @@ void S9xUpdateJoypads ();
 void S9xProcessMouse(int which1);
 void S9xSuperFXExec ();
 
+#if defined(USE_SETPPU_TABLE) && defined(USE_SETPPU_SMALL_TABLE)
+#error IMPOSIBLE SETPPU_SMALL_TABLE AND SETPU_LARGE_TABLE
+#endif
+
+#if defined(USE_SETPPU_TABLE) || defined(USE_SETPPU_SMALL_TABLE)
+typedef void (*S9xSetPPU_func_t)(uint8,uint16);
+extern S9xSetPPU_func_t S9xSetPPU_func[];
+#ifdef USE_SETPPU_SMALL_TABLE
 void S9xSetPPU (uint8 Byte, uint16 Address);
+#else
+#define S9xSetPPU(DAT,ADDR) S9xSetPPU_func[(ADDR)](DAT,ADDR)
+#endif
+#else
+void S9xSetPPU (uint8 Byte, uint16 Address);
+#endif
+
+#ifdef USE_GETPPU_TABLE
+typedef uint8 (*S9xGetPPU_func_t)(uint16);
+extern S9xGetPPU_func_t S9xGetPPU_func[0x10000];
+#define S9xGetPPU(ADDR) S9xGetPPU_func[(ADDR)](ADDR)
+#else
 uint8 S9xGetPPU (uint16 Address);
+#endif
+
 void S9xSetCPU (uint8 Byte, uint16 Address);
 uint8 S9xGetCPU (uint16 Address);
 
@@ -345,6 +367,12 @@ extern SnesModel M2SNES;
 #define MAX_5C78_VERSION 0x03
 #define MAX_5A22_VERSION 0x02
 
+#ifdef USE_GL
+extern int videogl_cache_reseted;
+extern unsigned videogl_changed_colors;
+extern unsigned char videogl_changed_color[256];
+#endif
+
 static __inline__ uint8 REGISTER_4212()
 {
     GetBank = 0;
@@ -359,18 +387,26 @@ static __inline__ uint8 REGISTER_4212()
     return (GetBank);
 }
 
-#ifdef USE_RASTER_DIFF
-extern int snes4all_raster;
-extern void FLUSH_REDRAW_PARTIAL(void);
-extern void FLUSH_REDRAW_END(void);
-#define FLUSH_REDRAW() { if (snes4all_raster) FLUSH_REDRAW_PARTIAL(); }
-#else
-#define FLUSH_REDRAW_PARTIAL() { \
+#define FLUSH_REDRAW_END() { \
 	if (IPPU.PreviousLine != IPPU.CurrentLine) \
 		S9xUpdateScreen (); \
 }
-#define FLUSH_REDRAW_END() FLUSH_REDRAW_PARTIAL()
-#define FLUSH_REDRAW() FLUSH_REDRAW_PARTIAL()
+
+#ifdef USE_RASTER_DIFF
+#define FLUSH_REDRAW_PARTIAL() { \
+	extern int snes4all_raster_diff; \
+	int diff_rst=(int)IPPU.CurrentLine - (int)IPPU.PreviousLine; \
+	if (diff_rst>=snes4all_raster_diff) \
+		S9xUpdateScreen (); \
+}
+#define FLUSH_REDRAW() { \
+	extern int snes4all_raster; \
+	if (snes4all_raster) \
+		FLUSH_REDRAW_PARTIAL() \
+}
+#else
+#define FLUSH_REDRAW_PARTIAL() FLUSH_REDRAW_END()
+#define FLUSH_REDRAW() FLUSH_REDRAW_END()
 #endif
 
 static __inline__ void REGISTER_2104 (uint8 byte)
@@ -486,16 +522,7 @@ static __inline__ void REGISTER_2118 (uint8 Byte)
 #ifdef TEST_CACHETILE
     }
 #endif
-    if (!PPU.VMA.High)
-    {
-#ifdef DEBUGGER
-	if (Settings.TraceVRAM && !CPU.InDMA)
-	{
-	    printf ("VRAM write byte: $%04X (%d,%d)\n", PPU.VMA.Address,
-		    CMemory_FillRAM[0x2115] & 3,
-		    (CMemory_FillRAM [0x2115] & 0x0c) >> 2);
-	}
-#endif	
+    if (!PPU.VMA.High) {
 	PPU.VMA.Address += PPU.VMA.Increment;
     }
 //    CMemory_FillRAM [0x2118] = Byte;
@@ -577,16 +604,7 @@ static __inline__ void REGISTER_2119 (uint8 Byte)
 #ifdef TEST_CACHETILE
     }
 #endif
-    if (PPU.VMA.High)
-    {
-#ifdef DEBUGGER
-	if (Settings.TraceVRAM && !CPU.InDMA)
-	{
-	    printf ("VRAM write word: $%04X (%d,%d)\n", PPU.VMA.Address,
-		    CMemory_FillRAM[0x2115] & 3,
-		    (CMemory_FillRAM [0x2115] & 0x0c) >> 2);
-	}
-#endif	
+    if (PPU.VMA.High) {
 	PPU.VMA.Address += PPU.VMA.Increment;
     }
 //    CMemory_FillRAM [0x2119] = Byte;
@@ -656,7 +674,20 @@ static __inline__ void REGISTER_2122(uint8 Byte)
 //	    IPPU.ColorsChanged = TRUE;
 	    IPPU.Blue [PPU.CGADD] = IPPU.XB [(Byte >> 2) & 0x1f];
 	    IPPU.Green [PPU.CGADD] = IPPU.XB [(PPU.CGDATA[PPU.CGADD] >> 5) & 0x1f];
+#ifdef USE_GL
+	    uint16 newcol=(uint16) BUILD_PIXEL (IPPU.Red [PPU.CGADD], IPPU.Green [PPU.CGADD], IPPU.Blue [PPU.CGADD]);
+	    if (IPPU.ScreenColors[PPU.CGADD]!=newcol) {
+//printf("Cambiar Color %i de %.4X a %.4X (1)\n",PPU.CGADD,IPPU.ScreenColors[PPU.CGADD],newcol);
+	    	IPPU.ScreenColors [PPU.CGADD] = newcol;
+		if (!videogl_changed_color[PPU.CGADD]) {
+			videogl_changed_color[PPU.CGADD]=1;
+			videogl_changed_colors++;
+		}
+//		videogl_cache_reseted=1
+	    }
+#else
 	    IPPU.ScreenColors [PPU.CGADD] = (uint16) BUILD_PIXEL (IPPU.Red [PPU.CGADD], IPPU.Green [PPU.CGADD], IPPU.Blue [PPU.CGADD]);
+#endif
 	}
 	PPU.CGADD++;
     }
@@ -670,7 +701,20 @@ static __inline__ void REGISTER_2122(uint8 Byte)
 //	    IPPU.ColorsChanged = TRUE;
 	    IPPU.Red [PPU.CGADD] = IPPU.XB [Byte & 0x1f];
 	    IPPU.Green [PPU.CGADD] = IPPU.XB [(PPU.CGDATA[PPU.CGADD] >> 5) & 0x1f];
+#ifdef USE_GL
+	    uint16 newcol=(uint16) BUILD_PIXEL (IPPU.Red [PPU.CGADD], IPPU.Green [PPU.CGADD], IPPU.Blue [PPU.CGADD]);
+	    if (newcol!=IPPU.ScreenColors [PPU.CGADD]) {
+//printf("Cambiar Color %i de %.4X a %.4X (2)\n",PPU.CGADD,IPPU.ScreenColors[PPU.CGADD],newcol);
+		    IPPU.ScreenColors [PPU.CGADD]=newcol;
+		    if (!videogl_changed_color[PPU.CGADD]) {
+			videogl_changed_color[PPU.CGADD]=1;
+			videogl_changed_colors++;
+		    }
+//		    videogl_cache_reseted=1
+	    }
+#else
 	    IPPU.ScreenColors [PPU.CGADD] = (uint16) BUILD_PIXEL (IPPU.Red [PPU.CGADD], IPPU.Green [PPU.CGADD], IPPU.Blue [PPU.CGADD]);
+#endif
 	}
     }
     PPU.CGFLIP ^= 1;
@@ -679,7 +723,17 @@ static __inline__ void REGISTER_2122(uint8 Byte)
 
 static __inline__ void REGISTER_2180(uint8 Byte)
 {
+//printf("REG RAM[%p]=%.2X\n",PPU.WRAM,Byte);
+#ifdef USE_MMU
+    uint8 *mmu_ram=(uint8 *)(0);
+    if (PPU.WRAM<0x2000) {
+    	mmu_ram[PPU.WRAM] = Byte;
+    }
+    mmu_ram=(uint8 *)(0x7e0000);
+    mmu_ram[PPU.WRAM++] = Byte;
+#else
     CMemory_RAM[PPU.WRAM++] = Byte;
+#endif
     PPU.WRAM &= 0x1FFFF;
     CMemory_FillRAM [0x2180] = Byte;
 }

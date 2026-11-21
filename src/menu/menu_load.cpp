@@ -32,7 +32,7 @@ char *text_str_load_separator="----------------------------------";
 char *text_str_load_separator=" -----------------------------";
 #endif
 char *text_str_load_dir="#DIR#";
-char *text_str_load_title="       Filemanager       -";
+char *text_str_load_title="        Filemanager       ";
 fichero *text_dir_files=NULL;
 int text_dir_num_files=0, text_dir_num_files_index=0;
 
@@ -289,7 +289,7 @@ static void draw_loadMenu()
 {
 	int i,j;
 	static int b=0;
-	int bb=(b%6)/3;
+	int bb=(b&3); //(b%6)/3;
 	SDL_Rect r;
 	extern SDL_Surface *text_screen;
 	r.x=R_X-R_XX; r.y=0; r.w=R_W+R_WW; r.h=240;

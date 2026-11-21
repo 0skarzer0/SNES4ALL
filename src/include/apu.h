@@ -173,6 +173,7 @@ extern int32 S9xAPUCycleLengths [256];	// Raw data.
 extern void (*S9xApuOpcodes [256]) (void);
 END_EXTERN_C
 
+extern "C" { void S9xApuExecute(void); }
 
 #define APU_VOL_LEFT 0x00
 #define APU_VOL_RIGHT 0x01

@@ -86,6 +86,9 @@
   Super NES and Super Nintendo Entertainment System are trademarks of
   Nintendo Co., Limited and its subsidiary companies.
 *******************************************************************************/
+#ifdef USE_OLD_DSP1
+#include "dsp1_old.cpp"
+#else
 #include "snes9x.h"
 #include "dsp1.h"
 #include "missing.h"
@@ -128,14 +131,6 @@ uint8 S9xGetDSP (uint16 address)
 {
     uint8 t;
 	
-#ifdef DEBUGGER
-    if (Settings.TraceDSP)
-    {
-		sprintf (String, "DSP read: 0x%04X", address);
-		S9xMessage (S9X_TRACE, S9X_TRACE_DSP1, String);
-    }
-#endif
- 
 	t=(*GetDSP)(address);
 		//DSP1GetByte(address);
     return (t);
@@ -143,14 +138,6 @@ uint8 S9xGetDSP (uint16 address)
 
 void S9xSetDSP (uint8 byte, uint16 address)
 {
-#ifdef DEBUGGER
-    missing.unknowndsp_write = address;
-    if (Settings.TraceDSP)
-    {
-		sprintf (String, "DSP write: 0x%04X=0x%02X", address, byte);
-		S9xMessage (S9X_TRACE, S9X_TRACE_DSP1, String);
-    }
-#endif
 	(*SetDSP)(byte, address);
 	//DSP1SetByte(byte, address);
 }
@@ -1194,3 +1181,4 @@ uint8 DSP4GetByte(uint16 address)
 
 	return t;
 }
+#endif

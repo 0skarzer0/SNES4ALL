@@ -20,16 +20,26 @@ extern unsigned snes4all_max_vcounter;
 extern short snes4all_vcounter[];
 
 extern unsigned snes4all_apu_hmax;
+extern int snes4all_displayframerate;
 
 #ifdef NORES256
 #define SNES4ALL_SCREEN_WIDTH 320
 #else
 #define SNES4ALL_SCREEN_WIDTH 256
 #endif
+
 #define SNES4ALL_SCREEN_HEIGHT 240
 #define SNES4ALL_SCREEN_DEPTH_BYTES 2
 #define SNES4ALL_SCREEN_DEPTH (8 * SNES4ALL_SCREEN_DEPTH_BYTES)
+#ifndef USE_GL
 #define SNES4ALL_SCREEN_PITCH (SNES4ALL_SCREEN_WIDTH * SNES4ALL_SCREEN_DEPTH_BYTES)
+#else
+#ifdef NORES256
+#define SNES4ALL_SCREEN_PITCH (512 * SNES4ALL_SCREEN_DEPTH_BYTES)
+#else
+#define SNES4ALL_SCREEN_PITCH (256 * SNES4ALL_SCREEN_DEPTH_BYTES)
+#endif
+#endif
 #define SNES4ALL_SCREEN_PITCH2 (SNES4ALL_SCREEN_PITCH >> 1)
 
 #ifdef NORES256

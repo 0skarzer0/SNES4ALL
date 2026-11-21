@@ -89,6 +89,37 @@
 .extern _S9xDoHBlankProcessing
 #endif
 
+.macro	RUN_CPU
+	mov.l ICPU,r1
+#ifdef VAR_CYCLES
+#ifdef USE_MEMORY_SPEED
+	mov.l MemSpeed, r2
+	mov.b @PC,r0
+	add r2,CYCLES
+	extu.b r0,r0
+#else
+	mov.b @PC,r0
+	add #8,CYCLES
+	extu.b r0,r0
+#endif
+#else
+	mov.b @PC,r0
+	mov.l CPUSpeed,r4
+	extu.b r0,r0
+	mov.b @(r0,r4),r2
+	add r2,CYCLES
+#endif
+	mov.l CPUOpcodes,r2
+	shll2 r0
+	mov.l @(r0,r2),r0
+#ifdef CPU_SHUTDOWN
+	mov.l PC, PCAtOpcodeStart
+#endif	
+	jmp @r0
+	add #1,PC
+.endm
+
+
 
 .globl MainAsmLoop
 
@@ -124,19 +155,21 @@ MainAsmLoop:
 	mov.l @r0,r1
 	add #-1,r1
 	tst r1,r1
-	bt/s .L12
+	bt/s .L8
 	mov.l r1,@r0
 
+	RUN_CPU
+.L8:
 	mov.l _snes4all_timeslice,r1
 	mov.l r1,@r0
 #else
 	add #-1, USE_REGISTER_LEFT_TIMESLICE
 	tst USE_REGISTER_LEFT_TIMESLICE, USE_REGISTER_LEFT_TIMESLICE
-	bt .L12
-	
-	mov.l _snes4all_timeslice, USE_REGISTER_LEFT_TIMESLICE
+	bt .L8
+	RUN_CPU
+.L8:	
 #endif
-
+	extu.b r0,r0
 	mov.l SA1,r1
 	mov.b SA1Executing,r0
 	tst r0,r0
@@ -167,17 +200,48 @@ MainAsmLoop:
 	jsr @r0
 	nop
 #else
+#ifndef USE_ALWAYS_APU_SYNC
+	mov.l .S9xApuExecute,r1
+	jsr @r1
+	STORE_REGISTERS_f
+	bsr S9xDoHBlankProcessing
+	nop
+#else
 	bsr S9xDoHBlankProcessing
 	STORE_REGISTERS_f
+#endif
 #endif
 	LOAD_REGISTERS MAL2
 
 .L9:
+#ifndef USE_ALWAYS_APU_SYNC
+	mov.l _snes4all_sound_enable,r0
+	mov #1,r1
+	cmp/hi r1,r0
+	bf .L12
+#endif
 #ifndef ARMAPU
+	extu.b r0,r0
 	mov.l IAPU,r1
 	mov.b APUExecuting,r0
 	tst r0,r0
 	bt .L12
+
+#ifndef USE_OLD_APUEXEC
+	mov.l APU,r1
+	mov.l APUCycles,r0
+	cmp/gt CYCLES,r0
+	bt .L12
+
+	SAVE_CYCLES
+	PUSH_REGISTERS
+	mov.l .S9xApuExecute,r0
+	jsr @r0
+	nop
+	POP_REGISTERS
+	LOAD_CYCLES
+#else
+
 .apuloop:
 	mov.l APU,r1
 	mov.l APUCycles,r0
@@ -214,6 +278,7 @@ MainAsmLoop:
 	bra .apuloop
 	nop
 #endif
+#endif
 
 	.align 2
 #endif	/* ARMAPU */
@@ -230,6 +295,7 @@ MainAsmLoop:
 	mov.l r1,NMICycleCount
 	add #-NMI_FLAG,r0
 	mov.l r0,Flags
+	extu.b r0,r0
 #ifndef USE_ASM_R12
 	add #16,r11
 #endif
@@ -254,9 +320,9 @@ MainAsmLoop:
 	nop
 	mov.l Flags,r0
 .NO_NMI:
-	mov.w .pIRQ_PENDING_FLAG,r1
+	mov.l .pIRQ_PENDING_FLAG,r1
 	tst r1, r0
-	bt .NO_PENDING_IRQ
+	bt .L15
 	mov.l IRQCycleCount,r0
 	tst r0,r0
 	bf/s .DEC_IRQ_CYCLE_COUNT
@@ -268,6 +334,7 @@ MainAsmLoop:
 #ifndef USE_ASM_R12
 	add #-16,r11
 #endif
+	extu.b r0,r0
 	tst r0,r0
 	bt .NOT_WAITING
 	mov #0,r0
@@ -292,24 +359,22 @@ MainAsmLoop:
 	/* XXX:	test for Settings.DisableIRQ */
 	mov #IRQ,r0
 	tst r0,FLAGS
-	bf .NO_PENDING_IRQ
+	bf .L15
 	mov.l S9xOpcode_IRQ,r3
 	jsr @r3
 	nop
-	bra .NO_PENDING_IRQ
+	bra .L15
 	nop
 .CLEAR_PENDING_IRQ_FLAG:
 	mov.l Flags,r0
-	mov.w .nIRQ_PENDING_FLAG,r1
+	mov.l .nIRQ_PENDING_FLAG,r1
 	and r1,r0
-	bra .NO_PENDING_IRQ
+	bra .L15
 	mov.l r0,Flags
 
 	.align 2
-.globl _snes4all_timeslice
-_snes4all_timeslice:
-	.long 6
 #ifndef USE_REGISTER_LEFT_TIMESLICE
+.global left_timeslice
 left_timeslice:
 	.long 0
 #endif
@@ -330,127 +395,68 @@ left_timeslice:
 	.long 0x000000fe
 #endif
 .pIRQ_PENDING_FLAG:
-	.word IRQ_PENDING_FLAG
+	.long IRQ_PENDING_FLAG
 .nIRQ_PENDING_FLAG:
-	.word ~IRQ_PENDING_FLAG
+	.long ~IRQ_PENDING_FLAG
 
 
 	.align 2
 .DEC_IRQ_CYCLE_COUNT:
 	mov.l r0,IRQCycleCount
 
-.NO_PENDING_IRQ:
-#ifdef DEBUGGER
-	mov.l Flags,r0
-	tst #SCAN_KEYS_FLAG, r0
-	bf .L31
-#else
-/*
-	bt .L15
-	add #-SCAN_KEYS_FLAG,r0
-	mov.l r0, Flags
-
-	PUSH_REGISTERS_i
-	mov.l .S9xSyncSpeed,r3
-	jsr @r3
-	PUSH_REGISTERS_f
-	POP_REGISTERS
-
-*/
-#endif
 .L15:
-	mov.l ICPU,r1
-#ifdef VAR_CYCLES
-#ifdef USE_MEMORY_SPEED
-	mov.l MemSpeed, r2
-	mov.b @PC,r0
-	add r2,CYCLES
-	extu.b r0,r0
+#ifdef USE_REGISTER_LEFT_TIMESLICE
+	mov.l _snes4all_timeslice, USE_REGISTER_LEFT_TIMESLICE
 #else
-	mov.b @PC,r0
-	add #8,CYCLES
-	extu.b r0,r0
+	mov.l _snes4all_timeslice,r1
 #endif
+	mov.l Flags,r0
+	tst r0,r0
+	bt .L16
+#ifdef USE_REGISTER_LEFT_TIMESLICE
+	mov #1, USE_REGISTER_LEFT_TIMESLICE
 #else
-	mov.b @PC,r0
-	mov.l CPUSpeed,r4
-	extu.b r0,r0
-	mov.b @(r0,r4),r2
-	add r2,CYCLES
+	mov #1, r1
 #endif
-	mov.l CPUOpcodes,r2
-	shll2 r0
-	mov.l @(r0,r2),r0
-#ifdef CPU_SHUTDOWN
-	mov.l PC, PCAtOpcodeStart
-#endif	
-	jmp @r0
-	add #1,PC
 
+.L16:
+#ifndef USE_REGISTER_LEFT_TIMESLICE
+	mova left_timeslice,r0
+	mov.l r1,@r0
+#endif
+	RUN_CPU
 
 	.align 2
+.globl _snes4all_timeslice
+_snes4all_timeslice: .long 4
 .S9xSA1MainLoop:
 	.long _S9xSA1MainLoop
 
 	.align 2
 	
-#ifdef DEBUGGER
-.L31:
-	S9xPackStatus S9xMainLoop
-	STORE_REGISTERS
-	mov.l PCBase,r0
-	neg r0,r0
-	add PC,r0
-	mov.w r0,PCR
 #ifndef ARMAPU
-#ifdef SPC700_C
-	mov.l IAPU,r1
-	mov.l APUPC, r0
-	mov.l APURAM, r1
-	sub r1,r0
-	mov.l APURegisters,r1
-	mov.w r0,APUPCR
-#else
-	mov.l APURAM,r1
-	sub r1,APUPC
-	mov.w APUPC, APUPCR
-#endif
-	APUS9xPackStatus S9xMainLoop
-#endif	/* ARMAPU */
-	mov.l Flags, r0
-	tst #SCAN_KEYS_FLAG,r0
-	bt .NoScanKeys
-	add #-SCAN_KEYS_FLAG,r0
-	mov.l r0, Flags
-	mov.l .S9xSyncSpeed,r3
-	jsr @r3
-	nop
-.NoScanKeys:
-	mov.l @r15+,r8
-	mov.l @r15+,r9
-	mov.l @r15+,r10
-	mov.l @r15+,r11
-	mov.l @r15+,r12
-	mov.l @r15+,r13
-	lds.l @r15+,pr
-
-	rts
-	mov.l @r15+,r14
-	bra .L15
-	nop
-#endif
-
-	.align 2
-#ifndef ARMAPU
+#ifdef USE_OLD_APUEXEC
 .S9xAPUCycles:
 	.long _S9xAPUCycles
 .S9xApuOpcodes:
 	.long _S9xApuOpcodes
+#ifndef USE_ALWAYS_APU_SYNC
+.S9xApuExecute:
+	.long _S9xApuExecute
+#endif
+#else
+.S9xApuExecute:
+	.long _S9xApuExecute
+#endif
 #endif	/* ARMAPU */
-
-#ifdef DEBUGGER
-.S9xSyncSpeed:
-	.long _S9xSyncSpeed
+#ifndef USE_ALWAYS_APU_SYNC
+.global _snes4all_sound_enable
+_snes4all_sound_enable:
+#if defined(DEBUG_TILECACHE) || defined(PROFILER_SNES4ALL)
+	.long 0
+#else
+	.long 1
+#endif
 #endif
 
 	.align 2
@@ -487,11 +493,13 @@ S9xDoHBlankProcessing:
 #ifdef CPU_SHUTDOWN
 	mov.l WaitCounter,r1
 #endif
-#ifdef USE_ASM_R12
+#ifndef USE_ASM_R12
+	add #16,r11
+#endif
 	mov.b WhichEvent,r0
-#else
-	mov.l WhichEvent,r0
 	extu.b r0,r0
+#ifndef USE_ASM_R12
+	add #-16,r11
 #endif
 #ifdef CPU_SHUTDOWN
 	add #1,r1
@@ -507,7 +515,7 @@ S9xDoHBlankProcessing:
 	cmp/hi r1,r0
 	bt .reschedule
 
-.htimer_trigger:
+!.htimer_trigger:
 	mov.l PPU,r1
 	mov.b HTimerEnabled,r0
 	tst r0,r0
@@ -523,25 +531,70 @@ S9xDoHBlankProcessing:
 #ifndef USE_ASM_R12
 	add #-16,r11
 #endif
-	extu.w r0,r0
 	cmp/eq r0,r3
 	bf .reschedule
 .L191:
-	// CHANGED: 20/11/00
+#ifndef USE_ASM_IRQ_INLINE
 	bsr _S9xSetIRQ
 	mov #1,r4
+#else
+#ifndef USE_ASM_R12
+	add #16,r11
+#endif
+	mov.b IRQActive,r0
+	mov #3,r1
+	or #1,r0
+	mov.b r0,IRQActive
+#ifndef USE_ASM_R12
+	add #-16,r11
+#endif
+	mov.l r1,IRQCycleCount
+	mov.l Flags,r2
+	mov.l .pIRQ_PENDING_FLAG20,r0
+	or r0,r2
+	mov.l r2,Flags
+#ifndef USE_ASM_R12
+	add #16,r11
+#endif
+	mov.b WaitingForInterrupt,r0
+	extu.b r0,r0
+#ifndef USE_ASM_R12
+	add #-16,r11
+#endif
+	tst r0,r0
+	bt .reschedule
+	mov #0,r0
+#ifndef USE_ASM_R12
+	add #16,r11
+#endif
+	mov.b r0,WaitingForInterrupt
+#ifndef USE_ASM_R12
+	add #-16,r11
+#endif
+	mov.l PCS,r1
+	mov.l r0,IRQCycleCount
+	add #1,r1
+	mov.l r1,PCS
+#endif
 
 	bra .reschedule
 	nop
 
+#ifdef USE_ASM_IRQ_INLINE
+	.align 2
+.pIRQ_PENDING_FLAG20:
+	.long IRQ_PENDING_FLAG
+#endif
+
 .hblank_start:		
 	mov.l IPPU,r1
 	mov.b HDMA,r0
-	mov r0,r4
-	tst r0,r0
+	extu.b r0,r4
+	tst r4,r4
 	bt .reschedule
 	mov.l PPU,r1
 	mov.w ScreenHeight,r0
+	extu.w r0,r0
 #ifndef USE_ASM_R12
 	add #16,r11
 #endif
@@ -553,30 +606,40 @@ S9xDoHBlankProcessing:
 	bt .reschedule
 	mov.l .S9xDoHDMA,r3
 	jsr @r3
-	extu.b r4,r4
+	nop
 	mov.l IPPU,r1
 	mov.b r0,HDMA
 
-#ifndef USE_OLD_APUTIMER
-.L178:
-#endif
 .reschedule:
-#ifdef USE_ASM_R12
-	mov.b WhichEvent,r0
-#else
-	mov.l WhichEvent,r0
-	extu.b r0,r0
+#ifndef USE_HDMA_EVENT
+	mov.l IPPU,r1
+	mov.b HDMA,r0
+	extu.b r0,r5
 #endif
+#ifndef USE_ASM_R12
+	add #16,r11
+#endif
+	mov.b WhichEvent,r0
+#ifndef USE_ASM_R12
+	add #-16,r11
+#endif
+	extu.b r0,r0
 	tst r0,r0
 	bt/s .next_is_hblank_end
 	mov.l Settings,r1
 	cmp/eq #3,r0
+#ifdef USE_HDMA_EVENT
 	bf .next_is_hblank_start
+#else
+	bt .next_is_hblank_end
+	tst r5,r5
+	bf .next_is_hblank_start
+#endif
 .next_is_hblank_end:
 	mov #1,r4
 	bra .skip
-/* AQUI NO ES NECESARIO CAMBIAR R5? */
 	mov.l H_Max,r5
+/* AQUI NO ES NECESARIO CAMBIAR R5? */
 .next_is_hblank_start:
 	mov #0,r4
 	mov.l HBlankStart,r5
@@ -599,6 +662,7 @@ S9xDoHBlankProcessing:
 	cmp/gt r3,r0
 	bf .not_enabled
 	mov.b VTimerEnabled,r0
+	extu.b r0,r0
 	tst r0,r0
 	bt .enabled
 	mov.w IRQVBeamPos,r0
@@ -609,7 +673,6 @@ S9xDoHBlankProcessing:
 #ifndef USE_ASM_R12
 	add #-16,r11
 #endif
-	extu.w r0,r0
 	cmp/eq r0,r2
 	bf .not_enabled
 .enabled:
@@ -636,16 +699,23 @@ S9xDoHBlankProcessing:
 	mov.b r0,WhichEvent
 #else
 	add #16,r11
-	mov.b r0,WhichEvent_m
+	mov.b r0,WhichEvent
 	rts
 	add #-16,r11
 #endif
 
 .hblank_end:
+	mov.l Settings,r1
+	add  #80, r1
+//mov.b SuperFXEnabled,r3
+	mov.b @r1,r3
+	extu.b r3,r3
+	tst  r3,r3
+	bt   .nofx
 	mov.l .S9xSuperFXExec,r3
 	jsr @r3
 	nop
-
+.nofx:
 #ifndef USE_SOUND_DESYNC
 	mova  .cuenta_sound_throttle, r0
 	mov.l @r0, r2
@@ -675,8 +745,8 @@ S9xDoHBlankProcessing:
 	sub r3,r0
 	mov.l r0,NextAPUTimerPos
 #endif
-
 	mov.b APUExecuting,r0
+	extu.b r0,r0
 	tst r0,r0
 	bt/s .apunotrunning
 	mov.l APU,r1
@@ -716,44 +786,31 @@ S9xDoHBlankProcessing:
 
 	mov.l _snes4all_max_vcounter,r3
 	cmp/hi r3,r0
-	bf .L161
+	bf .L162
 
-.ntsc_tv:
+#ifdef USE_OLD_SYNC_SPEED
+!.ntsc_tv:
 	mov.l PPU,r1
 	mov.w SavedOAMAddr,r0
-	mov #0,r4
 	mov.w r0,OAMAddr
-	mov r4,r0
+	mov #0,r0
 	mov.b r0,OAMFlip
-#ifdef USE_ASM_R12
-	mov.b r0,NMIActive
-#else
-	mov.l r0,NMIActive
-	extu.b r0,r0
-#endif
 #ifndef USE_ASM_R12
 	add #16,r11
 #endif
-	mov.l r4,V_Counter
+	mov.b r0,NMIActive
+	mov.l r0,V_Counter
 #ifndef USE_ASM_R12
 	add #-16,r11
 #endif
-	mov r4,r0
-	mov.l .S9xStartHDMA,r2
-	jsr @r2
-	mov.b r0,HVBeamCounterLatched
-
-	PUSH_REGISTERS_i
+#endif
 	mov.l .S9xSyncSpeed2,r3
 	jsr @r3
-	PUSH_REGISTERS_f
+	nop
 
-	POP_REGISTERS
 	mov.l  _savestate_state,r0
 	tst r0,r0
 	bt  .L161
-	PUSH_REGISTERS
-//	STORE_REGISTERS SSProc
 	mov.l PCBase,r0
 	neg r0,r0
 	add PC,r0
@@ -774,16 +831,15 @@ S9xDoHBlankProcessing:
 	mov.l .S9xSaveStateProcess,r3
 	jsr @r3
 	nop
-//	LOAD_REGISTERS SSProc
-	POP_REGISTERS
 .L161:
 	mov.l PPU,r1
 	mov.b VTimerEnabled,r0
+	extu.b r0,r0
 	tst r0,r0
-	bt .L162
+	bt .L165
 	mov.b HTimerEnabled,r0
 	tst r0,r0
-	bf .L162
+	bf .L165
 	mov.w IRQVBeamPos,r0
 #ifndef USE_ASM_R12
 	add #16,r11
@@ -792,16 +848,17 @@ S9xDoHBlankProcessing:
 #ifndef USE_ASM_R12
 	add #-16,r11
 #endif
-	extu.w r0,r0
 	cmp/eq r0,r2
-	bf .L162
+	bf .L165
 #ifndef USE_ASM_R12
 	add #16,r11
 #endif
+#ifdef USE_OLD_SYNC_SPEED
 	mov.b IRQActive,r0
 	or #2,r0
 	mov.b r0,IRQActive
 	mov.b WaitingForInterrupt,r0
+	extu.b r0,r0
 #ifndef USE_ASM_R12
 	add #-16,r11
 #endif
@@ -818,12 +875,56 @@ S9xDoHBlankProcessing:
 #ifndef USE_ASM_R12
 	add #-16,r11
 #endif
+#endif
 .L163:
+#ifndef USE_ASM_IRQ_INLINE
 	bsr _S9xSetIRQ
 	mov #2,r4
+#else
+#ifndef USE_ASM_R12
+	add #16,r11
+#endif
+	mov.b IRQActive,r0
+	mov #3,r1
+	or #2,r0
+	mov.b r0,IRQActive
+#ifndef USE_ASM_R12
+	add #-16,r11
+#endif
+	mov.l r1,IRQCycleCount
+	mov.l Flags,r2
+	mov.l .pIRQ_PENDING_FLAG21,r0
+	or r0,r2
+	mov.l r2,Flags
+#ifndef USE_ASM_R12
+	add #16,r11
+#endif
+	mov.b WaitingForInterrupt,r0
+	extu.b r0,r0
+#ifndef USE_ASM_R12
+	add #-16,r11
+#endif
+	tst r0,r0
+	bt .L165
+	mov #0,r0
+#ifndef USE_ASM_R12
+	add #16,r11
+#endif
+	mov.b r0,WaitingForInterrupt
+#ifndef USE_ASM_R12
+	add #-16,r11
+#endif
+	mov.l PCS,r1
+	mov.l r0,IRQCycleCount
+	add #1,r1
+	mov.l r1,PCS
+#endif
+	bra .L165
+	nop
 .L162:
 	mov.l PPU,r1
 	mov.w ScreenHeight,r0
+	extu.w r0,r0
 #ifndef USE_ASM_R12
 	add #16,r11
 #endif
@@ -833,12 +934,13 @@ S9xDoHBlankProcessing:
 #endif
 	add #1,r0
 	cmp/eq r0,r2
-	bf .L165
+	bf .L161
 
 	mov.l .S9xEndScreenRefresh,r0
 	jsr @r0
 	nop
 
+#ifdef USE_OLD_END_REFRESH
 	mov.l PPU,r1
 	mov #0,r0
 	mov.b r0,FirstSprite
@@ -862,48 +964,30 @@ S9xDoHBlankProcessing:
 	add #0x10,r2
 	cmp/pz r3
 	mov #0x80,r3
-	bt/s .L165
+	bt/s .L161
 	mov.b r3,@(r0,r2)
 	mov.l Flags,r0
 	or #NMI_FLAG,r0
 	mov.l r0,Flags
-#ifdef USE_ASM_R12
-	mov.l @(r0,r12),r2
-#else
-	add #16,r11
-	mov.l @(r0,r11),r2
-#endif
 	mov #NMITriggerPoint_offs,r0
 #ifdef USE_ASM_R12
 	mov.l @(r0,r12),r2
 #else
 	mov.l @(r0,r11),r2
-	add #-16,r11
 #endif
 	mov #1,r0
 	mov.l r2,NMICycleCount
-#ifdef USE_ASM_R12
-	mov.b r0,NMIActive
-#else
-	mov.l r0,NMIActive
-	extu.b r0,r0
-#endif
-.L165:
-	mov.w ScreenHeight,r0
-	add #3,r0
 #ifndef USE_ASM_R12
 	add #16,r11
 #endif
-	mov.l V_Counter,r2
+	mov.b r0,NMIActive
 #ifndef USE_ASM_R12
 	add #-16,r11
 #endif
-	cmp/eq r0,r2
-	bf .NoJoypadUpdate
-	mov.l .S9xUpdateJoypads,r3
-	jsr @r3
+#endif
+	bra .L161
 	nop
-.NoJoypadUpdate:
+.L165:
 #ifndef USE_ASM_R12
 	add #16,r11
 #endif
@@ -913,8 +997,16 @@ S9xDoHBlankProcessing:
 #endif
 	cmp/eq #1,r0
 	bf .L177
+#ifndef USE_OLD_START_REFRESH
+	mov.l .S9xStartScreenRefresh,r3
+	jsr @r3
+	nop
+#else
+	mov.l .S9xUpdateJoypads,r3
+	jsr @r3
+	nop
 	mov.l .FillRAM0,r3
-	mov #0,r2
+	mov #2,r2
 	mov.w .n4210,r1
 	mov.l Flags,r0
 	add r1,r3
@@ -924,6 +1016,7 @@ S9xDoHBlankProcessing:
 	add #-NMI_FLAG,r0
 	jsr @r3
 	mov.l r0,Flags
+#endif
 .L177:
 #ifndef USE_ASM_R12
 	add #16,r11
@@ -952,12 +1045,16 @@ S9xDoHBlankProcessing:
 	jsr @r3
 	extu.b r0,r4
 
-#ifdef USE_OLD_APUTIMER
 .L178:
+#ifndef USE_OLD_APUTIMER
+	bra .reschedule
+	nop
+#else
 #ifndef ARMAPU
 	mov.l .APUTimer_ptr,r2
 	mov.l IAPU,r1
 	mov.b @(APUTimerEnabled - APUTimer + 2,r2),r0
+	extu.b r0,r0
 	tst r0,r0
 	bt .L179
 	mov.w @(4,r2),r0
@@ -970,6 +1067,7 @@ S9xDoHBlankProcessing:
 	bf .L179
 .L182:
 	mov.w .n255,r0
+	extu.w r0,r0
 	mov.l APURAM,r3
 	add r0,r3
 	mov.b @r3,r0
@@ -1008,14 +1106,14 @@ S9xDoHBlankProcessing:
 	tst #1,r0
 	bt 1f
 	mov.b @(APUTimerEnabled - APUTimer,r2),r0
+	extu.b r0,r0
 	tst r0,r0
 	bt .L185
 	mov.w @r2,r0
 	add #1,r0
 	mov.w r0,@r2
-	extu.w r0,r3
+	mov r0,r3
 	mov.w @(APUTimerTarget - APUTimer,r2),r0
-	extu.w r0,r0
 	cmp/hs r0,r3
 	bf .L185
 	mov.w .n253,r0
@@ -1039,14 +1137,14 @@ S9xDoHBlankProcessing:
 #endif
 .L185:
 	mov.b @(APUTimerEnabled - APUTimer + 1,r2),r0
+	extu.b r0,r0
 	tst r0,r0
 	bt 1f
 	mov.w @(2, r2),r0
 	add #1,r0
 	mov.w r0,@(2, r2)
-	extu.w r0,r3
+	mov r0,r3
 	mov.w @(APUTimerTarget - APUTimer + 2,r2),r0
-	extu.w r0,r0
 	cmp/hs r0,r3
 	bf 1f
 	mov.w .n254,r0
@@ -1077,6 +1175,11 @@ S9xDoHBlankProcessing:
 	nop
 
 	.align 2
+#ifdef USE_ASM_IRQ_INLINE
+.pIRQ_PENDING_FLAG21:
+	.long IRQ_PENDING_FLAG
+#endif
+
 .S9xDoHDMA:
 	.long _S9xDoHDMA
 .S9xSuperFXExec:	
@@ -1086,22 +1189,30 @@ S9xDoHBlankProcessing:
 	.long _S9xGenerateSound
 #endif
 
-.S9xStartHDMA:	
-	.long _S9xStartHDMA
+//.S9xStartHDMA:	
+//	.long _S9xStartHDMA
 .S9xEndScreenRefresh:	
 	.long _S9xEndScreenRefresh
+#if defined(USE_OLD_END_REFRESH) || defined(USE_OLD_START_REFRESH)
 .FillRAM0:	
 	.long FillRAM
+#endif
+#ifdef USE_OLD_START_REFRESH
 .S9xUpdateJoypads:	
 	.long _S9xUpdateJoypads
+#endif
 .S9xStartScreenRefresh:
 	.long _S9xStartScreenRefresh
 .RenderLine:
 	.long _RenderLine
+#ifdef USE_OLD_START_REFRESH
 .n4210:
 	.word 0x4210
+#endif
+#ifdef USE_OLD_END_REFRESH
 .nx2100:
 	.word 0x2100
+#endif
 .n253:
 	.word 253
 .n254:
@@ -1116,9 +1227,9 @@ S9xDoHBlankProcessing:
 	.align 2
 .global _snes4all_sound_throttle
 _snes4all_sound_throttle:
-	.long 3
+	.long 1
 .cuenta_sound_throttle:
-	.long 3
+	.long 1
 .S9xUpdateAPUTimer_CONST00002710:
         .long 0x00002710
 .S9xUpdateAPUTimer_CONST003334bb:
@@ -1167,7 +1278,6 @@ _S9xSetIRQ:
 	add #16,r11
 #endif
 	mov.b IRQActive,r0
-	// CHANGED: 20/11/00
 	mov #3,r1
 	or r4,r0
 	mov.b r0,IRQActive
@@ -1176,13 +1286,14 @@ _S9xSetIRQ:
 #endif
 	mov.l r1,IRQCycleCount
 	mov.l Flags,r2
-	mov.w .pIRQ_PENDING_FLAG2,r0
+	mov.l .pIRQ_PENDING_FLAG2,r0
 	or r0,r2
 	mov.l r2,Flags
 #ifndef USE_ASM_R12
 	add #16,r11
 #endif
 	mov.b WaitingForInterrupt,r0
+	extu.b r0,r0
 #ifndef USE_ASM_R12
 	add #-16,r11
 #endif
@@ -1196,8 +1307,6 @@ _S9xSetIRQ:
 #ifndef USE_ASM_R12
 	add #-16,r11
 #endif
-	// IRQ must trigger immediately after a WAI instruction - 
-	// Final Fantasy Mystic Quest requires this.
 	mov.l PCS,r1
 	mov.l r0,IRQCycleCount
 	add #1,r1
@@ -1226,12 +1335,13 @@ _S9xClearIRQ:
 	mov.b IRQActive,r0
 	and r3,r0
 	mov.b r0,IRQActive
+	extu.b r0,r0
 #ifndef USE_ASM_R12
 	add #-16,r11
 #endif
 	tst r0,r0
 	bf .irqsstillpending
-	mov.w .nIRQ_PENDING_FLAG2,r0
+	mov.l .nIRQ_PENDING_FLAG2,r0
 	mov.l Flags,r2
 	and r0,r2
 	mov.l r2,Flags
@@ -1252,9 +1362,9 @@ _S9xClearIRQ:
 	.long _Registers
 #endif
 .pIRQ_PENDING_FLAG2:
-	.word IRQ_PENDING_FLAG
+	.long IRQ_PENDING_FLAG
 .nIRQ_PENDING_FLAG2:
-	.word ~IRQ_PENDING_FLAG
+	.long ~IRQ_PENDING_FLAG
 
 	.align 2
 /*
@@ -1271,10 +1381,11 @@ _IAPU:
 	.endr
 	.align 2
 */
+/*
 .global _APURegisters
 _APURegisters:
 	.rept (8/4)
 	.long 0
 	.endr
 	.align 2
-
+*/

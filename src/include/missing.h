@@ -90,6 +90,8 @@
 #ifndef _MISSING_H_
 #define _MISSING_H_
 
+#ifdef DEBUGGER
+
 struct HDMA
 {
     uint8 used;
@@ -160,5 +162,6 @@ struct Missing
 };
 
 EXTERN_C struct Missing missing;
-#endif
 
+#endif
+#endif

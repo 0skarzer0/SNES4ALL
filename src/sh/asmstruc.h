@@ -205,9 +205,9 @@
 
 #ifndef USE_ASM_R12
 #if 1
-#undef DB
-#define DB r12
-#define USE_REGISTER_AS_DB
+#undef PB
+#define PB r12
+#define USE_REGISTER_AS_PB
 #else
 #define USE_REGISTER_LEFT_TIMESLICE r12
 #endif
@@ -215,9 +215,9 @@
 
 #ifndef USE_ASM_R5
 #if 0
-#undef PB
-#define PB r5
-#define USE_REGISTER_AS_PB
+#undef DB
+#define DB r5
+#define USE_REGISTER_AS_DB
 #else
 #define USE_REGISTER_LEFT_TIMESLICE r5
 #endif
@@ -243,8 +243,6 @@
         mov.l @r0+,r11
 #ifdef USE_ASM_R12
         mov.l @r0+,r12
-#else
-	add #4, r0
 #endif
         mov.l @r0+,r13
 	mov r0,r14
@@ -254,7 +252,9 @@
  	.align 2
 .misc:
 	.long _Registers
+#ifdef USE_ASM_R12
 	.long _CPU
+#endif
 	.long MainAsmLoop
 
 	.long 0

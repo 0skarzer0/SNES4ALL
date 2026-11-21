@@ -24,6 +24,7 @@ void write_text(int x, int y, char * str);
 void write_text_inv(int x, int y, char * str);
 void write_text_sel(int x, int y, char * str);
 void write_text_sel2(int x, int y, char * str);
+void write_text_sel3(int x, int y, char * str);
 void write_centered_text(int y, char * str);
 void write_centered_text_inv(int y, char * str);
 void write_num(int x, int y, int v);

@@ -37,7 +37,7 @@ enum { SAVE_MENU_CASE_EXIT, SAVE_MENU_CASE_LOAD_MEM, SAVE_MENU_CASE_SAVE_MEM, SA
 static inline void draw_saveMenu(int c)
 {
 	static int b=0;
-	int bb=(b%6)/3;
+	int bb=(b&3); //(b%6)/3;
 
 	text_draw_background();
 #ifdef DREAMCAST_SAVE_VMU
@@ -49,19 +49,19 @@ static inline void draw_saveMenu(int c)
 	
 	write_text(9,7,text_str_savestate);
 	if ((saveMenu_n_savestate==0)&&((c!=0)||(bb)))
-		write_text_sel(22,7,text_str_0);
+		write_text_sel3(22,7,text_str_0);
 	else
 		write_text(22,7,text_str_0);
 	if ((saveMenu_n_savestate==1)&&((c!=0)||(bb)))
-		write_text_sel(24,7,text_str_1);
+		write_text_sel3(24,7,text_str_1);
 	else
 		write_text(24,7,text_str_1);
 	if ((saveMenu_n_savestate==2)&&((c!=0)||(bb)))
-		write_text_sel(26,7,text_str_2);
+		write_text_sel3(26,7,text_str_2);
 	else
 		write_text(26,7,text_str_2);
 	if ((saveMenu_n_savestate==3)&&((c!=0)||(bb)))
-		write_text_sel(28,7,text_str_3);
+		write_text_sel3(28,7,text_str_3);
 	else
 		write_text(28,7,text_str_3);
 	write_text(9,8,text_str_separator);
@@ -343,18 +343,22 @@ void show_please_wait(char *title, SDL_Surface *scr)
 	extern SDL_Surface *text_screen;
 	SDL_Surface *back=text_screen;
 //	menu_moving=0;
+#ifndef USE_GL
 	if (scr) {
 		text_screen=scr;
-	} else {
+	} else
+#endif
 		text_draw_background();
-	}
 //	sound_play_beep();
+#ifndef USE_GL
 	if (scr) {
 		text_draw_window(64-8,64,172+24,32+16,title);
 		write_text_sel(12,10," Please wait ");
 		SDL_Flip(scr);
 		text_screen=back;
-	} else {
+	} else
+#endif
+	{
 		text_draw_window(64,64,172,32,title);
 		write_text(12,9,"Please wait");
 		text_flip();
@@ -368,11 +372,13 @@ int run_menuSave()
 	int end;
 	saveMenu_case=-1;
 
+#if 0
 	if (!snes4all_emulating)
 	{
 		show_error("No running");
 		return 0;
 	}
+#endif
 
 	while(saveMenu_case<0)
 	{
@@ -389,13 +395,21 @@ int run_menuSave()
 			case SAVE_MENU_CASE_LOAD_MEM:
 //				show_please_wait("Loading",NULL);
 				extern int savestate_state;
+#ifndef USE_GL
 				savestate_state = -302;
+#else
+				savestate_state = -102;
+#endif
 				saveMenu_case=1;
 				break;
 			case SAVE_MENU_CASE_SAVE_MEM:
 //				show_please_wait("Saving",NULL);
 				extern int savestate_state;
+#ifndef USE_GL
 				savestate_state = -301;
+#else
+				savestate_state = -101;
+#endif
 				saveMenu_case=1;
 				break;
 #ifdef DREAMCAST_SAVE_VMU

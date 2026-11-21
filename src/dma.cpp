@@ -120,7 +120,7 @@ extern uint8 *HDMABasePointers [8];
 uint32 HDMARawPointers[8];	// Cart address space pointer
 #endif
 
-#if defined(__linux__) || defined(__WIN32__) || defined(__MACOSX__)
+#if defined(__linux__) || defined(__WIN32__) || defined(__MACOSX__) || defined(DREAMCAST)
 static int S9xCompareSDD1IndexEntries (const void *p1, const void *p2)
 {
     return (*(uint32 *) p1 - *(uint32 *) p2);
@@ -134,6 +134,22 @@ static int S9xCompareSDD1IndexEntries (const void *p1, const void *p2)
 
 void S9xDoDMA (uint8 Channel)
 {
+#ifdef SHOW_DMA
+	uint32 suma=0;
+	uint32 cuantos=1;
+	printf("S9xDoDMA(%u)\n",Channel);
+#endif
+/*
+dcache_flush_range((uint32)&CMemory_RAM[0], 0x20000);
+dcache_flush_range((uint32)&CMemory_FillRAM[0], SNES4ALL_MAX_ROM_SIZE + 0x200 +0x8000);
+dcache_flush_range(0x0, 0x2000 - 64);
+dcache_flush_range(0x6000, 0x2000 - 64);
+dcache_flush_range(0x3f8000, 0x308000 - 64);
+dcache_flush_range(0x7e0000, 0x22000 - 64);
+dcache_flush_range(0xbf8000, 0x308000 - 64);
+*/
+
+
     uint8 Work;
 	
     if (Channel > 7 || CPU.InDMA)
@@ -188,6 +204,9 @@ void S9xDoDMA (uint8 Channel)
 				uint8* in_ptr=GetBasePointer(((d->ABank << 16) | d->AAddress));
 				in_ptr+=d->AAddress;
 
+#ifdef USE_MMU_BASEPOINTER
+				dcache_flush_range((uint32)( ((d->ABank << 16) | d->AAddress)&0xff0000),2*d->TransferBytes);
+#endif
 				SDD1_decompress(buffer,in_ptr,d->TransferBytes);
 				in_sdd1_dma=buffer;
 #ifdef SDD1_VERIFY
@@ -230,9 +249,9 @@ void S9xDoDMA (uint8 Channel)
 			}
 
 			else
-			{
 #endif
-#if defined(__linux__) || defined (__WIN32__) || defined(__MACOSX__)
+			{
+#if defined(__linux__) || defined (__WIN32__) || defined(__MACOSX__) || defined(DREAMCAST)
 			void *ptr = bsearch (&address, CMemory_SDD1Index, 
 				CMemory_SDD1Entries, 12, S9xCompareSDD1IndexEntries);
 			if (ptr)
@@ -284,9 +303,7 @@ void S9xDoDMA (uint8 Channel)
 				}
 			}
 		}
-#ifdef SDD1_DECOMP
-		}
-#endif
+	}
 
 		CMemory_FillRAM [0x4801] = 0;
     }
@@ -439,34 +456,6 @@ void S9xDoDMA (uint8 Channel)
 		}
     }
 	
-#ifdef DEBUGGER
-    if (Settings.TraceDMA)
-    {
-		sprintf (String, "DMA[%d]: %s Mode: %d 0x%02X%04X->0x21%02X Bytes: %d (%s) V-Line:%ld",
-			Channel, d->TransferDirection ? "read" : "write",
-			d->TransferMode, d->ABank, d->AAddress,
-			d->BAddress, d->TransferBytes,
-			d->AAddressFixed ? "fixed" :
-		(d->AAddressDecrement ? "dec" : "inc"),
-			CPU.V_Counter);
-		if (d->BAddress == 0x18 || d->BAddress == 0x19 || d->BAddress == 0x39 || d->BAddress == 0x3a)
-			sprintf (String, "%s VRAM: %04X (%d,%d) %s", String,
-				PPU.VMA.Address,
-				PPU.VMA.Increment, PPU.VMA.FullGraphicCount,
-				PPU.VMA.High ? "word" : "byte");
-
-		else
-			if (d->BAddress == 0x22 || d->BAddress == 0x3b)
-			
-				sprintf (String, "%s CGRAM: %02X (%x)", String, PPU.CGADD,
-					PPU.CGFLIP);			
-			else
-				if (d->BAddress == 0x04 || d->BAddress == 0x38)
-					sprintf (String, "%s OBJADDR: %04X", String, PPU.OAMAddr);
-				S9xMessage (S9X_TRACE, S9X_DMA_TRACE, String);
-    }
-#endif
-	
     if (!d->TransferDirection)
     {
 		/* XXX: DMA is potentially broken here for cases where we DMA across
@@ -487,8 +476,15 @@ void S9xDoDMA (uint8 Channel)
 
 		uint8 *base = GetBasePointer ((d->ABank << 16) + d->AAddress);
 		uint16 p = d->AAddress;
-		
+
+#ifdef SHOW_DMA
+		printf(" DMA %p to %p (count=%i, inc=%i) %s\n",(d->ABank << 16)+d->AAddress,(d->ABank << 16)+d->AAddress+(count*inc),count,inc,(((d->ABank << 16)+d->AAddress)&0xfff000)!=(((d->ABank << 16)+d->AAddress+(count*inc))&0xfff000)?"CUIDADO":"OK");	
+#endif
+#ifndef USE_MMU	
 		if (!base)
+#else
+		if ((unsigned)base==-1)
+#endif
 			base = CMemory_ROM;
 		
 		if (in_sa1_dma)
@@ -507,11 +503,18 @@ void S9xDoDMA (uint8 Channel)
 			base=spc7110_dma;
 			p = 0;
 		}
-		if (inc > 0)
+		if (inc > 0) {
 			d->AAddress += count;
-		else
-			if (inc < 0)
+#ifdef USE_MMU_BASEPOINTER
+			dcache_flush_range((uint32)base, count*inc);
+#endif
+		}else if (inc < 0) {
 				d->AAddress -= count;
+#ifdef USE_MMU_BASEPOINTER
+				dcache_flush_range(((uint32)base)-(count*(-inc)), count*(-inc));
+#endif
+		}
+		
 			
 			if (d->TransferMode == 0 || d->TransferMode == 2 || d->TransferMode == 6)
 			{
@@ -521,6 +524,9 @@ void S9xDoDMA (uint8 Channel)
 					do
 					{
 						Work = *(base + p);
+#ifdef SHOW_DMA
+						suma+=Work*(cuantos++);
+#endif
 						REGISTER_2104(Work);
 						p += inc;
 						CHECK_SOUND();
@@ -535,6 +541,9 @@ void S9xDoDMA (uint8 Channel)
 						do
 						{
 							Work = *(base + p);
+#ifdef SHOW_DMA
+							suma+=Work*(cuantos++);
+#endif
 							REGISTER_2118_linear(Work);
 							p += inc;
 							CHECK_SOUND();
@@ -545,6 +554,9 @@ void S9xDoDMA (uint8 Channel)
 						do
 						{
 							Work = *(base + p);
+#ifdef SHOW_DMA
+							suma+=Work*(cuantos++);
+#endif
 							REGISTER_2118_tile(Work);
 							p += inc;
 							CHECK_SOUND();
@@ -560,6 +572,9 @@ void S9xDoDMA (uint8 Channel)
 						do
 						{
 							Work = *(base + p);
+#ifdef SHOW_DMA
+							suma+=Work*(cuantos++);
+#endif
 							REGISTER_2119_linear(Work);
 							p += inc;
 							CHECK_SOUND();
@@ -570,6 +585,9 @@ void S9xDoDMA (uint8 Channel)
 						do
 						{
 							Work = *(base + p);
+#ifdef SHOW_DMA
+							suma+=Work*(cuantos++);
+#endif
 							REGISTER_2119_tile(Work);
 							p += inc;
 							CHECK_SOUND();
@@ -580,6 +598,9 @@ void S9xDoDMA (uint8 Channel)
 					do
 					{
 						Work = *(base + p);
+#ifdef SHOW_DMA
+						suma+=Work*(cuantos++);
+#endif
 						REGISTER_2122(Work);
 						p += inc;
 						CHECK_SOUND();
@@ -589,6 +610,9 @@ void S9xDoDMA (uint8 Channel)
 					do
 					{
 						Work = *(base + p);
+#ifdef SHOW_DMA
+						suma+=Work*(cuantos++);
+#endif
 						REGISTER_2180(Work);
 						p += inc;
 						CHECK_SOUND();
@@ -598,6 +622,9 @@ void S9xDoDMA (uint8 Channel)
 					do
 					{
 						Work = *(base + p);
+#ifdef SHOW_DMA
+						suma+=Work*(cuantos++);
+#endif
 						S9xSetPPU (Work, 0x2100 + d->BAddress);
 						p += inc;
 						CHECK_SOUND();
@@ -619,10 +646,16 @@ void S9xDoDMA (uint8 Channel)
 							while (count > 1)
 							{
 								Work = *(base + p);
+#ifdef SHOW_DMA
+								suma+=Work*(cuantos++);
+#endif
 								REGISTER_2118_linear(Work);
 								p += inc;
 								
 								Work = *(base + p);
+#ifdef SHOW_DMA
+								suma+=Work*(cuantos++);
+#endif
 								REGISTER_2119_linear(Work);
 								p += inc;
 								CHECK_SOUND();
@@ -631,6 +664,9 @@ void S9xDoDMA (uint8 Channel)
 							if (count == 1)
 							{
 								Work = *(base + p);
+#ifdef SHOW_DMA
+								suma+=Work*(cuantos++);
+#endif
 								REGISTER_2118_linear(Work);
 								p += inc;
 							}
@@ -640,10 +676,16 @@ void S9xDoDMA (uint8 Channel)
 							while (count > 1)
 							{
 								Work = *(base + p);
+#ifdef SHOW_DMA
+								suma+=Work*(cuantos++);
+#endif
 								REGISTER_2118_tile(Work);
 								p += inc;
 								
 								Work = *(base + p);
+#ifdef SHOW_DMA
+								suma+=Work*(cuantos++);
+#endif
 								REGISTER_2119_tile(Work);
 								p += inc;
 								CHECK_SOUND();
@@ -652,6 +694,9 @@ void S9xDoDMA (uint8 Channel)
 							if (count == 1)
 							{
 								Work = *(base + p);
+#ifdef SHOW_DMA
+								suma+=Work*(cuantos++);
+#endif
 								REGISTER_2118_tile(Work);
 								p += inc;
 							}
@@ -663,10 +708,16 @@ void S9xDoDMA (uint8 Channel)
 						while (count > 1)
 						{
 							Work = *(base + p);
+#ifdef SHOW_DMA
+							suma+=Work*(cuantos++);
+#endif
 							S9xSetPPU (Work, 0x2100 + d->BAddress);
 							p += inc;
 							
 							Work = *(base + p);
+#ifdef SHOW_DMA
+							suma+=Work*(cuantos++);
+#endif
 							S9xSetPPU (Work, 0x2101 + d->BAddress);
 							p += inc;
 							CHECK_SOUND();
@@ -675,6 +726,9 @@ void S9xDoDMA (uint8 Channel)
 						if (count == 1)
 						{
 							Work = *(base + p);
+#ifdef SHOW_DMA
+							suma+=Work*(cuantos++);
+#endif
 							S9xSetPPU (Work, 0x2100 + d->BAddress);
 							p += inc;
 						}
@@ -686,24 +740,36 @@ void S9xDoDMA (uint8 Channel)
 						do
 						{
 							Work = *(base + p);
+#ifdef SHOW_DMA
+							suma+=Work*(cuantos++);
+#endif
 							S9xSetPPU (Work, 0x2100 + d->BAddress);
 							p += inc;
 							if (count <= 1)
 								break;
 							
 							Work = *(base + p);
+#ifdef SHOW_DMA
+							suma+=Work*(cuantos++);
+#endif
 							S9xSetPPU (Work, 0x2100 + d->BAddress);
 							p += inc;
 							if (count <= 2)
 								break;
 							
 							Work = *(base + p);
+#ifdef SHOW_DMA
+							suma+=Work*(cuantos++);
+#endif
 							S9xSetPPU (Work, 0x2101 + d->BAddress);
 							p += inc;
 							if (count <= 3)
 								break;
 							
 							Work = *(base + p);
+#ifdef SHOW_DMA
+							suma+=Work*(cuantos++);
+#endif
 							S9xSetPPU (Work, 0x2101 + d->BAddress);
 							p += inc;
 							CHECK_SOUND();
@@ -716,41 +782,45 @@ void S9xDoDMA (uint8 Channel)
 							do
 							{
 								Work = *(base + p);
+#ifdef SHOW_DMA
+								suma+=Work*(cuantos++);
+#endif
 								S9xSetPPU (Work, 0x2100 + d->BAddress);
 								p += inc;
 								if (count <= 1)
 									break;
 								
 								Work = *(base + p);
+#ifdef SHOW_DMA
+								suma+=Work*(cuantos++);
+#endif
 								S9xSetPPU (Work, 0x2101 + d->BAddress);
 								p += inc;
 								if (count <= 2)
 									break;
 								
 								Work = *(base + p);
+#ifdef SHOW_DMA
+								suma+=Work*(cuantos++);
+#endif
 								S9xSetPPU (Work, 0x2102 + d->BAddress);
 								p += inc;
 								if (count <= 3)
 									break;
 								
 								Work = *(base + p);
+#ifdef SHOW_DMA
+								suma+=Work*(cuantos++);
+#endif
 								S9xSetPPU (Work, 0x2103 + d->BAddress);
 								p += inc;
 								CHECK_SOUND();
 								count -= 4;
 							} while (count > 0);
 						}
-						else
+						/*else
 						{
-#ifdef DEBUGGER
-							//	    if (Settings.TraceDMA)
-							{
-								sprintf (String, "Unknown DMA transfer mode: %d on channel %d\n",
-									d->TransferMode, Channel);
-								S9xMessage (S9X_TRACE, S9X_DMA_TRACE, String);
-							}
-#endif
-						}
+						}*/
     }
     else
     {
@@ -759,6 +829,9 @@ void S9xDoDMA (uint8 Channel)
 		 * XXX: cover the whole range of the DMA though, if we transfer
 		 * XXX: 65536 bytes only 256 of them may be Address Bus B.
 		 */
+#ifdef SHOW_DMA
+		printf(" DMA!%u %p -> %p to %p (count=%i, inc=%i)\n",d->TransferMode,0x2100 + d->BAddress,(d->ABank << 16) + d->AAddress,(d->ABank << 16) + d->AAddress + (inc*count), count, inc);
+#endif
 		do
 		{
 			switch (d->TransferMode)
@@ -767,6 +840,9 @@ void S9xDoDMA (uint8 Channel)
 			case 2:
 			case 6:
 				Work = S9xGetPPU (0x2100 + d->BAddress);
+#ifdef SHOW_DMA
+				suma+=Work*(cuantos++);
+#endif
 				S9xSetByte (Work, (d->ABank << 16) + d->AAddress);
 				d->AAddress += inc;
 				--count;
@@ -775,12 +851,18 @@ void S9xDoDMA (uint8 Channel)
 			case 1:
 			case 5:
 				Work = S9xGetPPU (0x2100 + d->BAddress);
+#ifdef SHOW_DMA
+				suma+=Work*(cuantos++);
+#endif
 				S9xSetByte (Work, (d->ABank << 16) + d->AAddress);
 				d->AAddress += inc;
 				if (!--count)
 					break;
 				
 				Work = S9xGetPPU (0x2101 + d->BAddress);
+#ifdef SHOW_DMA
+				suma+=Work*(cuantos++);
+#endif
 				S9xSetByte (Work, (d->ABank << 16) + d->AAddress);
 				d->AAddress += inc;
 				count--;
@@ -789,24 +871,36 @@ void S9xDoDMA (uint8 Channel)
 			case 3:
 			case 7:
 				Work = S9xGetPPU (0x2100 + d->BAddress);
+#ifdef SHOW_DMA
+				suma+=Work*(cuantos++);
+#endif
 				S9xSetByte (Work, (d->ABank << 16) + d->AAddress);
 				d->AAddress += inc;
 				if (!--count)
 					break;
 				
 				Work = S9xGetPPU (0x2100 + d->BAddress);
+#ifdef SHOW_DMA
+				suma+=Work*(cuantos++);
+#endif
 				S9xSetByte (Work, (d->ABank << 16) + d->AAddress);
 				d->AAddress += inc;
 				if (!--count)
 					break;
 				
 				Work = S9xGetPPU (0x2101 + d->BAddress);
+#ifdef SHOW_DMA
+				suma+=Work*(cuantos++);
+#endif
 				S9xSetByte (Work, (d->ABank << 16) + d->AAddress);
 				d->AAddress += inc;
 				if (!--count)
 					break;
 				
 				Work = S9xGetPPU (0x2101 + d->BAddress);
+#ifdef SHOW_DMA
+				suma+=Work*(cuantos++);
+#endif
 				S9xSetByte (Work, (d->ABank << 16) + d->AAddress);
 				d->AAddress += inc;
 				count--;
@@ -814,38 +908,42 @@ void S9xDoDMA (uint8 Channel)
 				
 			case 4:
 				Work = S9xGetPPU (0x2100 + d->BAddress);
+#ifdef SHOW_DMA
+				suma+=Work*(cuantos++);
+#endif
 				S9xSetByte (Work, (d->ABank << 16) + d->AAddress);
 				d->AAddress += inc;
 				if (!--count)
 					break;
 				
 				Work = S9xGetPPU (0x2101 + d->BAddress);
+#ifdef SHOW_DMA
+				suma+=Work*(cuantos++);
+#endif
 				S9xSetByte (Work, (d->ABank << 16) + d->AAddress);
 				d->AAddress += inc;
 				if (!--count)
 					break;
 				
 				Work = S9xGetPPU (0x2102 + d->BAddress);
+#ifdef SHOW_DMA
+				suma+=Work*(cuantos++);
+#endif
 				S9xSetByte (Work, (d->ABank << 16) + d->AAddress);
 				d->AAddress += inc;
 				if (!--count)
 					break;
 				
 				Work = S9xGetPPU (0x2103 + d->BAddress);
+#ifdef SHOW_DMA
+				suma+=Work*(cuantos++);
+#endif
 				S9xSetByte (Work, (d->ABank << 16) + d->AAddress);
 				d->AAddress += inc;
 				count--;
 				break;
 				
 			default:
-#ifdef DEBUGGER
-				if (1) //Settings.TraceDMA)
-				{
-					sprintf (String, "Unknown DMA transfer mode: %d on channel %d\n",
-						d->TransferMode, Channel);
-					S9xMessage (S9X_TRACE, S9X_DMA_TRACE, String);
-				}
-#endif
 				count = 0;
 				break;
 			}
@@ -885,7 +983,9 @@ update_address:
     
     CPU.InDMA = FALSE;
 
-
+#ifdef SHOW_DMA
+    printf(" RET DMA=%.8X (%i)\n",suma,cuantos-1);
+#endif
 }
 
 void S9xStartHDMA ()
@@ -893,12 +993,19 @@ void S9xStartHDMA ()
 #ifndef ENABLE_HDMA
 		IPPU.HDMA = 0;
 #else
-		missing.hdma_this_frame = IPPU.HDMA = CMemory_FillRAM [0x420c];
+		IPPU.HDMA = CMemory_FillRAM [0x420c];
 #endif
 	
 	//per anomie timing post
 	if(IPPU.HDMA!=0)
 	{
+#if 0
+ndef USE_HDMA_EVENT
+		if ((unsigned)CPU.NextEvent > (unsigned)Settings.HBlankStart) {
+			CPU.WhichEvent = HBLANK_START_EVENT;
+			CPU.NextEvent = Settings.HBlankStart;
+		}
+#endif
 		CPU.Cycles+=ONE_CYCLE*3;
 		S9xUpdateAPUTimer();
 	}
@@ -927,14 +1034,12 @@ void S9xStartHDMA ()
     }
 }
 
-#ifdef DEBUGGER
-void S9xTraceSoundDSP (const char *s, int i1 = 0, int i2 = 0, int i3 = 0,
-					   int i4 = 0, int i5 = 0, int i6 = 0, int i7 = 0);
-#endif
-
 
 uint8 S9xDoHDMA (uint8 byte)
 {
+#ifdef SHOW_DMA
+    printf("S9xDoHDMA(%u)\n",byte);
+#endif
     struct SDMA *p = &DMA [0];
     
     int d = 0;
@@ -1047,29 +1152,14 @@ uint8 S9xDoHDMA (uint8 byte)
 				}
 			}
 
-#ifdef DEBUGGER
-			if (Settings.TraceSoundDSP && p->FirstLine && 
-					p->BAddress >= 0x40 && p->BAddress <= 0x43)
-				S9xTraceSoundDSP ("Spooling data!!!\n");
-			if (Settings.TraceHDMA && p->FirstLine)
-			{
-				sprintf (String, "H-DMA[%d] (%d) 0x%02X%04X->0x21%02X %s, Count: %3d, Rep: %s, V-LINE: %3ld %02X%04X",
-						p-DMA, p->TransferMode, p->IndirectBank,
-						p->IndirectAddress,
-						p->BAddress,
-						p->HDMAIndirectAddressing ? "ind" : "abs",
-						p->LineCount,
-						p->Repeat ? "yes" : "no ", CPU.V_Counter,
-						p->ABank, p->Address);
-				S9xMessage (S9X_TRACE, S9X_HDMA_TRACE, String);
-			}
-#endif
-
 			switch (p->TransferMode)
 			{
 				case 0:
 					CPU.Cycles += SLOW_ONE_CYCLE;
 					S9xUpdateAPUTimer();
+#ifdef SHOW_DMA
+					printf(" 0: SetPPU(HDMAMemPointers[%u]=%p,%p)\n",d,*HDMAMemPointers [d],0x2100 + p->BAddress);
+#endif
 #ifdef SETA010_HDMA_FROM_CART
 					S9xSetPPU (S9xGetByte (HDMARawPointers [d]++), 0x2100 + p->BAddress);
 					HDMAMemPointers [d]++;
@@ -1080,6 +1170,9 @@ uint8 S9xDoHDMA (uint8 byte)
 				case 5:
 					CPU.Cycles += 2*SLOW_ONE_CYCLE;
 					S9xUpdateAPUTimer();
+#ifdef SHOW_DMA
+					printf(" 5: SetPPU(HDMAMemPointers[%u]=%p,%p) y SetPPU(HDMAMemPointers[%u]=%p,%p)\n",d,*(HDMAMemPointers [d] + 0),0x2100 + p->BAddress,d+1,*(HDMAMemPointers [d] + 1),0x2101 + p->BAddress);
+#endif
 #ifdef SETA010_HDMA_FROM_CART
 					S9xSetPPU (S9xGetByte (HDMARawPointers [d]), 0x2100 + p->BAddress);
 					S9xSetPPU (S9xGetByte (HDMARawPointers [d] + 1), 0x2101 + p->BAddress);
@@ -1093,6 +1186,9 @@ uint8 S9xDoHDMA (uint8 byte)
 				case 1:
 					CPU.Cycles += 2*SLOW_ONE_CYCLE;
 					S9xUpdateAPUTimer();
+#ifdef SHOW_DMA
+					printf(" 1: SetPPU(HDMAMemPointers[%u]=%p,%p) y SetPPU(HDMAMemPointers[%u]=%p,%p)\n",d,*(HDMAMemPointers [d] + 0),0x2100 + p->BAddress,d+1,*(HDMAMemPointers [d] + 1),0x2101 + p->BAddress);
+#endif
 #ifdef SETA010_HDMA_FROM_CART
 					S9xSetPPU (S9xGetByte (HDMARawPointers [d]), 0x2100 + p->BAddress);
 					S9xSetPPU (S9xGetByte (HDMARawPointers [d] + 1), 0x2101 + p->BAddress);
@@ -1107,6 +1203,9 @@ uint8 S9xDoHDMA (uint8 byte)
 				case 6:
 					CPU.Cycles += 2*SLOW_ONE_CYCLE;
 					S9xUpdateAPUTimer();
+#ifdef SHOW_DMA
+					printf(" 6: SetPPU(HDMAMemPointers[%u]=%p,%p) SetPPU(HDMAMemPointers[%u]=%p,%p)\n",d,*(HDMAMemPointers [d] + 0),0x2100 + p->BAddress,d+1,*(HDMAMemPointers [d] + 1),0x2100 + p->BAddress);
+#endif
 #ifdef SETA010_HDMA_FROM_CART
 					S9xSetPPU (S9xGetByte (HDMARawPointers [d]), 0x2100 + p->BAddress);
 					S9xSetPPU (S9xGetByte (HDMARawPointers [d] + 1), 0x2100 + p->BAddress);
@@ -1121,6 +1220,9 @@ uint8 S9xDoHDMA (uint8 byte)
 				case 7:
 					CPU.Cycles += 4*SLOW_ONE_CYCLE;
 					S9xUpdateAPUTimer();
+#ifdef SHOW_DMA
+					printf(" 7: SetPPU(HDMAMemPointers[%u]=%p,%p) SetPPU(HDMAMemPointers[%u]=%p,%p) SetPPU(HDMAMemPointers[%u]=%p,%p) SetPPU(HDMAMemPointers[%u]=%p,%p)\n",d,*(HDMAMemPointers [d] + 0),0x2100 + p->BAddress,d+1,*(HDMAMemPointers [d] + 1),0x2100 + p->BAddress,d+2,*(HDMAMemPointers [d] + 2),0x2101 + p->BAddress,d+3,*(HDMAMemPointers [d] + 3),0x2101 + p->BAddress);
+#endif
 #ifdef SETA010_HDMA_FROM_CART
 					S9xSetPPU (S9xGetByte (HDMARawPointers [d]), 0x2100 + p->BAddress);
 					S9xSetPPU (S9xGetByte (HDMARawPointers [d] + 1), 0x2100 + p->BAddress);
@@ -1138,6 +1240,9 @@ uint8 S9xDoHDMA (uint8 byte)
 				case 4:
 					CPU.Cycles += 4*SLOW_ONE_CYCLE;
 					S9xUpdateAPUTimer();
+#ifdef SHOW_DMA
+					printf(" 4: SetPPU(HDMAMemPointers[%u]=%p,%p) SetPPU(HDMAMemPointers[%u]=%p,%p) SetPPU(HDMAMemPointers[%u]=%p,%p) SetPPU(HDMAMemPointers[%u]=%p,%p)\n",d,*(HDMAMemPointers [d] + 0),0x2100 + p->BAddress,d+1,*(HDMAMemPointers [d] + 1),0x2101 + p->BAddress,d+2,*(HDMAMemPointers [d] + 2),0x2102 + p->BAddress,d+3,*(HDMAMemPointers [d] + 3),0x2103 + p->BAddress);
+#endif
 #ifdef SETA010_HDMA_FROM_CART
 					S9xSetPPU (S9xGetByte (HDMARawPointers [d]), 0x2100 + p->BAddress);
 					S9xSetPPU (S9xGetByte (HDMARawPointers [d] + 1), 0x2101 + p->BAddress);

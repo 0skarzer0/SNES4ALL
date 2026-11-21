@@ -1,32 +1,40 @@
 USE_CPUASM=1
 #USE_CPUASM_MIXTO=1
+USE_GL=1
+USE_MMU=1
 
 TARGET = snes4all
 
 BACK_KOS_AS=$(KOS_CC_BASE)/bin/$(KOS_CC_PREFIX)-as
 KOS_AS = $(KOS_CCPLUS) -ml -m4-single-only  -c
 
-#OPTFLAGS=-O3 -fomit-frame-pointer -DDREAMCAST -DDATA_PREFIX="/rd/"
-#OPTFLAGS+= -falign-functions=32 -falign-labels=32 -falign-loops=32 -falign-jumps=32 -ffast-math
-OPTFLAGS=-Os -fomit-frame-pointer -DDREAMCAST -DDATA_PREFIX="/rd/"
-OPTFLAGS+= -falign-functions=32 -falign-labels=4 -falign-loops=4 -falign-jumps=4 -ffast-math -g0
-#OPTFLAGS+= -falign-functions -falign-labels -falign-loops -falign-jumps -ffast-math -g0
-#OPTFLAGS+= -ffast-math
+OPTFLAGS=-O3 -fomit-frame-pointer -DDREAMCAST -DDATA_PREFIX="/rd/" -ffast-math -g0
+#OPTFLAGS=-Os -fomit-frame-pointer -DDREAMCAST -DDATA_PREFIX="/rd/" -ffast-math -g0
+#OPTFLAGS+= -falign-functions=32 -falign-labels=32 -falign-loops=32 -falign-jumps=32
+OPTFLAGS+= -falign-functions=32 -falign-labels=4 -falign-loops=4 -falign-jumps=4
+#OPTFLAGS+= -falign-functions -falign-labels -falign-loops -falign-jumps
 
 DEFS += -DSNES4ALL_MAX_ROM_SIZE=0x600000
 #DEFS += -DNORES256
 
 DEFS += -DUSE_RASTER_DIFF
-#DEFS += -DUSE_RENDER_BACK
 DEFS +=	-DCPU_SHUTDOWN
 DEFS += -DSPC700_SHUTDOWN 
 DEFS += -DEXECUTE_SUPERFX_PER_LINE
 DEFS += -DSPC700_C
 DEFS += -DVAR_CYCLES
 DEFS += -DSDD1_DECOMP
+DEFS += -DUSE_OLD_DSP1
+DEFS += -DUSE_NO_WAIT_WHEN_IRQ
 DEFS += -DNO_INLINE_SET_GET
+#DEFS += -DUSE_MMU_BOUNDARY
+#DEFS += -DUSE_MMU_MASK
+DEFS += -DUSE_MMU_DIRECT_INDEX
+#DEFS += -DUSE_MMU_BASEPOINTER
 #DEFS += -DUSE_MEMORY_SPEED
 #DEFS += -DUSE_BLOCK_RAM
+DEFS += -DUSE_ASM_ALIGN_OPCODES
+DEFS += -DUSE_ASM_SMALL
 #DEFS += -DUSE_ASM_R5
 DEFS += -DUSE_ASM_R12
 #DEFS += -DENABLE_ECHO_SOUND
@@ -39,23 +47,51 @@ DEFS += -DUSE_ALTDECODE=5
 #DEFS += -DUSE_MODE7_INTERPOLATE
 DEFS += -DENABLE_GRAPHIC_WINDOWS
 DEFS += -DENABLE_HDMA
+#DEFS += -DUSE_HDMA_EVENT
 #DEFS += -DNEW_COLOUR_BLENDING
 #DEFS += -DOLD_COLOUR_BLENDING
 #DEFS += -DSNES4ALL_NUM_CHANNELS=6
 #DEFS += -DSNES4ALL_STEREO
-DEFS += -DDIRECT_COLOR_MAP
+#DEFS += -DUSE_VIDEOGL_DIRECT_SLOT
+#DEFS += -DDIRECT_COLOR_MAP
 DEFS += -DTEST_CACHETILE
 DEFS += -DTILES_INLINE
+DEFS += -DUSE_SETPPU_TABLE
+#DEFS += -DUSE_SETPPU_SMALL_TABLE
+DEFS += -DUSE_GETPPU_TABLE
+DEFS += -DUSE_ASM_GET_SPC
+DEFS += -DUSE_ASM_SET_MATRIX
+DEFS += -DUSE_ASM_IRQ_INLINE
+DEFS += -DUSE_ASM_PREFETCH
+DEFS += -DUSE_VIDEOGL_SELECTIVE_CACHE_RESET=4
+DEFS += -DVIDEO_GL_MAX_TEX=32768
+DEFS += -DVIDEO_GL_RASTER=64
+#DEFS += -DUSE_VIDEOGL_EXTEND_TILELIST
+#DEFS += -DUSE_VGL_TABLE
+#DEFS += -DUSE_VGL_LARGE_TABLE
 
 #DEFS += -DNOSOUND
 
+#DEFS += -DAUTOLOAD="/cd/Aladdin.zip"
+#DEFS += -DAUTOLOAD="/cd/smario.zip"
 #DEFS += -DAUTOLOAD="/cd/starwars.zip"
+#DEFS += -DAUTOLOAD="/cd/turrican.zip"
+#DEFS += -DAUTOLOAD="/cd/castlevania.zip"
+#DEFS += -DAUTOLOAD="/cd/jamespond.zip"
 #DEFS += -DAUTOLOAD="/cd/Parodius.zip"
 #DEFS += -DAUTOLOAD="/sd/snes4all/EarthwormJim.zip"
 #DEFS += -DAUTOLOAD="/sd/snes4all/KirbySuperstar.zip"
 #DEFS += -DAUTOSAVESTATE
+#DEFS += -DAUTO_LOADSAVESTATE="jamespond.ssn"
+#DEFS += -DAUTO_LOADSAVESTATE="castlevania.ssn"
+#DEFS += -DAUTO_LOADSAVESTATE="turrican.ssn"
+#DEFS += -DAUTO_LOADSAVESTATE="aladdin.ssn"
+#DEFS += -DAUTO_LOADSAVESTATE="smario.ssn"
+#DEFS += -DAUTO_LOADSAVESTATE="starwars.ssn"
 #DEFS += -DAUTO_EVENTS
-#DEFS += -DMAX_AUTO_EVENTS=1000
+#DEFS += -DMAX_AUTO_EVENTS=500
+
+#DEFS += -DSHOW_DMA
 
 #DEFS += -DPROFILER_SNES4ALL
 
@@ -66,6 +102,12 @@ DEFS += -DTILES_INLINE
 #DEFS += -DDEBUG_TILECACHE
 #DEFS += -DAUTO_DEBUG_TILECACHE=2000
 
+DEFS += -DREBOOT_DREAMCAST
+
+ifdef USE_GL
+DEFS += -DUSE_GL
+endif
+
 ifdef USE_CPUASM
 DEFS += -DUSE_OPC_ASM
 
@@ -73,13 +115,23 @@ DEFS += -DASMSTRUC_NOP_PATCH
 DEFS += -DSA1ADDR_NOP_PATCH
 DEFS += -DASMADDR_NOP_PATCH
 DEFS += -DUSE_OLD_APUTIMER
+#DEFS += -DUSE_OLD_END_REFRESH
+#DEFS += -DUSE_OLD_START_REFRESH
+#DEFS += -DUSE_OLD_SYNC_SPEED
+#DEFS += -DUSE_ALWAYS_APU_SYNC
 endif
 
 ifdef USE_CPUASM_MIXTO
 DEFS += -DUSE_OPC_ASM_MIXTO
 endif
 
+ifdef USE_MMU
+KOS_CFLAGS= -Isrc/mmu_handle/kos-patch/kernel/arch/dreamcast/include -O3 -fomit-frame-pointer -ml -m4-single-only -fno-optimize-sibling-calls -I$(KOS_BASE)/include -I$(KOS_BASE)/addons/include -I$(KOS_BASE)/kernel/arch/dreamcast/include -D_arch_dreamcast -D_arch_sub_pristine -Wall -g -fno-builtin -fno-strict-aliasing
+KOS_LDFLAGS = -Lsrc/mmu_handle/kos-patch/lib/dreamcast -Lsrc/mmu_handle/kos-patch/addons/lib/dreamcast -ml -m4-single-only -Wl,-Ttext=0x8c010000 -nostartfiles -nostdlib -L$(KOS_BASE)/lib/dreamcast -L$(KOS_BASE)/addons/lib/dreamcast
+MORE_CFLAGS = -DUSE_MMU -Isrc/mmu_handle -I$(KOS_BASE)/addons/include/SDL -I$(KOS_BASE)/addons/include $(OPTFLAGS)
+else
 MORE_CFLAGS = -I$(KOS_BASE)/addons/include/SDL -I$(KOS_BASE)/addons/include $(OPTFLAGS)
+endif
 
 MORE_CFLAGS +=	-Isrc/include -Isrc/unzip -Isrc/menu -Isrc/sh -DMITSHM \
 		$(DEFS) -DUNZIP_SUPPORT -DZLIB -DHAVE_MKSTEMP  \
@@ -97,21 +149,46 @@ include $(KOS_BASE)/Makefile.rules
 
 KOS_CPPFLAGS=-fno-operator-names -fno-exceptions
 
-OBJS =	\
+ifdef USE_CPUASM
+ifdef USE_CPUASM_MIXTO
+OBJS +=	\
+	src/cpuexec.o 
+endif
+OBJS +=	\
+	src/sh/cpuexec.o \
+	src/sh/cpuops.o \
+	src/sh/cpumem.o
+ifdef USE_MMU
+OBJS +=	src/sh/sa1ops.o
+else
+OBJS += src/sa1cpu.o
+endif
+
+else
+OBJS +=	\
+	src/cpuops.o \
+	src/cpuexec.o \
+	src/sa1cpu.o
+endif
+
+ifdef USE_MMU
+OBJS += src/mmu_handle/mmu_handle.o
+endif
+
+
+OBJS +=	\
 	src/globals.o \
 	src/fxinst.o \
 	src/c4emu.o \
 	src/fxemu.o \
 	src/2xsai.o \
 	src/apu.o \
-	src/apudebug.o \
 	src/c4.o \
 	src/cheats.o \
 	src/cheats2.o \
 	src/clip.o \
 	src/cpu.o \
 	src/data.o \
-	src/debug.o \
 	src/dma.o \
 	src/dsp1.o \
 	src/gfx.o \
@@ -131,7 +208,6 @@ OBJS =	\
 	src/seta018.o \
 	src/snaporig.o \
 	src/snapshot.o \
-	src/snes9x.o \
 	src/soundux.o \
 	src/spc700.o \
 	src/spc7110.o \
@@ -152,30 +228,24 @@ OBJS =	\
 	src/menu/menu_load.o \
 	romdisk.o
 
-ifdef USE_CPUASM
-ifdef USE_CPUASM_MIXTO
-OBJS +=	\
-	src/cpuexec.o 
-endif
-OBJS +=	\
-	src/sh/cpuexec.o \
-	src/sh/cpuops.o \
-	src/sh/sa1ops.o \
-	src/sh/cpumem.o
-else
-OBJS +=	\
-	src/cpuops.o \
-	src/cpuexec.o \
-	src/sa1cpu.o
+ifdef USE_GL
+OBJS += \
+	src/sdl/videogl.o \
+	src/tilegl.o
 endif
 
+ifdef USE_GL
+LIBS= -lSDL_mixer_126 -lSDL_gl_1213 -lkglx -lz_123 -lm  
+else
+LIBS= -lSDL_mixer_126 -lSDL_1213 -lz_123 -lm  
+endif
 
 clean:
 	rm -f $(OBJS) $(TARGET).elf $(TARGET).bin  romdisk.o romdisk.img example.iso offsets.bin offsets.elf src/offsets.o
 
 $(TARGET).elf: $(OBJS)
 	$(KOS_CC) $(KOS_CFLAGS) $(KOS_LDFLAGS) -o $(TARGET).elf $(KOS_START) \
-	$(OBJS) $(OBJEXTRA) -lSDL_mixer_126 -lSDL_1213 -lz_123 -lm  $(KOS_LIBS)
+	$(OBJS) $(OBJEXTRA) $(LIBS)  $(KOS_LIBS)
 
 offsets.elf: src/offsets.o
 	$(KOS_CC) $(KOS_CFLAGS) $(KOS_LDFLAGS) -o offsets.elf $(KOS_START) \

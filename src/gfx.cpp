@@ -99,6 +99,7 @@
 #include "screenshot.h"
 
 #include "snes4all.h"
+#include "videogl.h"
 
 #define M7 19
 #define M8 19
@@ -108,6 +109,8 @@
 #else
 #define PPU_BG_Forced 0
 #endif
+
+//#define SHOW_TODO
 
 void output_png();
 void ComputeClipWindows ();
@@ -125,7 +128,7 @@ extern NormalTileRenderer DrawTilePtr;
 extern ClippedTileRenderer DrawClippedTilePtr;
 extern NormalTileRenderer DrawHiResTilePtr;
 extern ClippedTileRenderer DrawHiResClippedTilePtr;
-#ifdef USE_DINAMIC_HIRES_TILES
+#ifdef USE_GL
 #define CallDrawHiResTilePtr (*DrawHiResTilePtr)
 #define CallDrawHiResClippedTilePtr (*DrawClippedTile16)
 #else
@@ -265,6 +268,122 @@ void DrawLargePixel16Sub1_2 (uint32 Tile, uint32 Offset,
 			     uint32 StartPixel, uint32 Pixels,
 			     uint32 StartLine, uint32 LineCount);
 
+void DrawTilehw (uint32 Tile, uint32 Offset, uint32 StartLine,
+	       uint32 LineCount);
+void DrawClippedTilehw (uint32 Tile, uint32 Offset,
+		      uint32 StartPixel, uint32 Width,
+		      uint32 StartLine, uint32 LineCount);
+void DrawTilex2hw (uint32 Tile, uint32 Offset, uint32 StartLine,
+		 uint32 LineCount);
+void DrawClippedTilex2hw (uint32 Tile, uint32 Offset,
+			uint32 StartPixel, uint32 Width,
+			uint32 StartLine, uint32 LineCount);
+void DrawTilex2x2hw (uint32 Tile, uint32 Offset, uint32 StartLine,
+	       uint32 LineCount);
+void DrawClippedTilex2x2hw (uint32 Tile, uint32 Offset,
+			  uint32 StartPixel, uint32 Width,
+			  uint32 StartLine, uint32 LineCount);
+void DrawLargePixelhw (uint32 Tile, uint32 Offset,
+		     uint32 StartPixel, uint32 Pixels,
+		     uint32 StartLine, uint32 LineCount);
+
+void DrawTile16hw (uint32 Tile, uint32 Offset, uint32 StartLine,
+	         uint32 LineCount);
+void DrawClippedTile16hw (uint32 Tile, uint32 Offset,
+		        uint32 StartPixel, uint32 Width,
+		        uint32 StartLine, uint32 LineCount);
+void DrawTile16x2hw (uint32 Tile, uint32 Offset, uint32 StartLine,
+		   uint32 LineCount);
+void DrawClippedTile16x2hw (uint32 Tile, uint32 Offset,
+			  uint32 StartPixel, uint32 Width,
+			  uint32 StartLine, uint32 LineCount);
+void DrawTile16x2x2hw (uint32 Tile, uint32 Offset, uint32 StartLine,
+		     uint32 LineCount);
+void DrawClippedTile16x2x2hw (uint32 Tile, uint32 Offset,
+			    uint32 StartPixel, uint32 Width,
+			    uint32 StartLine, uint32 LineCount);
+void DrawLargePixel16hw (uint32 Tile, uint32 Offset,
+		       uint32 StartPixel, uint32 Pixels,
+		       uint32 StartLine, uint32 LineCount);
+
+void DrawTile16Addhw (uint32 Tile, uint32 Offset, uint32 StartLine,
+		    uint32 LineCount);
+
+void DrawClippedTile16Addhw (uint32 Tile, uint32 Offset,
+			   uint32 StartPixel, uint32 Width,
+			   uint32 StartLine, uint32 LineCount);
+
+void DrawTile16Add1_2hw (uint32 Tile, uint32 Offset, uint32 StartLine,
+		       uint32 LineCount);
+
+void DrawClippedTile16Add1_2hw (uint32 Tile, uint32 Offset,
+			      uint32 StartPixel, uint32 Width,
+			      uint32 StartLine, uint32 LineCount);
+
+void DrawTile16FixedAdd1_2hw (uint32 Tile, uint32 Offset, uint32 StartLine,
+			    uint32 LineCount);
+
+void DrawClippedTile16FixedAdd1_2hw (uint32 Tile, uint32 Offset,
+				   uint32 StartPixel, uint32 Width,
+				   uint32 StartLine, uint32 LineCount);
+
+void DrawTile16Subhw (uint32 Tile, uint32 Offset, uint32 StartLine,
+		    uint32 LineCount);
+
+void DrawClippedTile16Subhw (uint32 Tile, uint32 Offset,
+			   uint32 StartPixel, uint32 Width,
+			   uint32 StartLine, uint32 LineCount);
+
+void DrawTile16Sub1_2hw (uint32 Tile, uint32 Offset, uint32 StartLine,
+		       uint32 LineCount);
+
+void DrawClippedTile16Sub1_2hw (uint32 Tile, uint32 Offset,
+			      uint32 StartPixel, uint32 Width,
+			      uint32 StartLine, uint32 LineCount);
+
+void DrawTile16FixedSub1_2hw (uint32 Tile, uint32 Offset, uint32 StartLine,
+			    uint32 LineCount);
+
+void DrawClippedTile16FixedSub1_2hw (uint32 Tile, uint32 Offset,
+				   uint32 StartPixel, uint32 Width,
+				   uint32 StartLine, uint32 LineCount);
+
+void DrawLargePixel16Addhw (uint32 Tile, uint32 Offset,
+			  uint32 StartPixel, uint32 Pixels,
+			  uint32 StartLine, uint32 LineCount);
+
+void DrawLargePixel16Add1_2hw (uint32 Tile, uint32 Offset,
+			     uint32 StartPixel, uint32 Pixels,
+			     uint32 StartLine, uint32 LineCount);
+
+void DrawLargePixel16Subhw (uint32 Tile, uint32 Offset,
+			  uint32 StartPixel, uint32 Pixels,
+			  uint32 StartLine, uint32 LineCount);
+
+void DrawLargePixel16Sub1_2hw (uint32 Tile, uint32 Offset,
+			     uint32 StartPixel, uint32 Pixels,
+			     uint32 StartLine, uint32 LineCount);
+
+void S9xGraphicsInitTiles () {
+#ifdef USE_GL
+    if (videogl_hw_render) {
+	DrawTilePtr = DrawTile16hw;
+	DrawClippedTilePtr = DrawClippedTile16hw;
+	DrawLargePixelPtr = DrawLargePixel16hw;
+	DrawHiResTilePtr= DrawTile16hw;
+	DrawHiResClippedTilePtr = DrawClippedTile16hw;
+    } else
+#endif
+    {
+	DrawTilePtr = DrawTile16;
+	DrawClippedTilePtr = DrawClippedTile16;
+	DrawLargePixelPtr = DrawLargePixel16;
+	DrawHiResTilePtr= DrawTile16;
+	DrawHiResClippedTilePtr = DrawClippedTile16;
+    }
+    S9xFixColourBrightness ();
+}
+
 bool8 S9xGraphicsInit ()
 {
     register uint32 PixelOdd = 1;
@@ -368,7 +487,7 @@ bool8 S9xGraphicsInit ()
     GFX.Delta = (GFX.SubScreen - GFX.Screen) >> 1;
     GFX.DepthDelta = GFX.SubZBuffer - GFX.ZBuffer;
 
-#if defined(DISPLAY_FRAMERATE) && !defined(DEBUG_FRAMESKIP)
+#ifdef USE_GL
     GFX.InfoStringTimeout = 0;
     GFX.InfoString = NULL;
 #endif
@@ -383,17 +502,8 @@ bool8 S9xGraphicsInit ()
 #endif
     GFX.PixSize = 1;
 
-//MIRAR: POSIBLEMENTE FIJO PARA SIEMPRE JAMAS
-    {
-	DrawTilePtr = DrawTile16;
-	DrawClippedTilePtr = DrawClippedTile16;
-	DrawLargePixelPtr = DrawLargePixel16;
-	DrawHiResTilePtr= DrawTile16;
-	DrawHiResClippedTilePtr = DrawClippedTile16;
-    }
-    S9xFixColourBrightness ();
+    S9xGraphicsInitTiles();
 
-// MIRAR: OLD_COLOUR_BLENDING Y POSIBLES VALORES SIMPRE FIJOS
     {
 	if (!(GFX.X2 = (uint16 *) malloc (sizeof (uint16) * 0x10000)))
 	    return (FALSE);
@@ -585,7 +695,12 @@ void S9xBuildDirectColourMaps ()
 
 void S9xStartScreenRefresh ()
 {
-#if defined(DISPLAY_FRAMERATE) && !defined(DEBUG_FRAMESKIP)
+#ifndef USE_OLD_START_REFRESH
+	    S9xUpdateJoypads ();
+	    CMemory_FillRAM[0x4210] = Model->_5A22;
+	    CPU.Flags &= ~NMI_FLAG;
+#endif
+#ifdef USE_GL
     if (GFX.InfoStringTimeout > 0 && --GFX.InfoStringTimeout == 0)
 	GFX.InfoString = NULL;
 #endif
@@ -611,29 +726,6 @@ void S9xStartScreenRefresh ()
 	    IPPU.DoubleWidthPixels = FALSE;
 	    IPPU.DoubleHeightPixels = FALSE;
 */
-#ifdef USE_GLIDE
-	    if (Settings.GlideEnable)
-	    {
-		// Speed up hack for Glide: render low res. SNES images
-		// into a handy 256x256 sized buffer that can be uploaded into
-		// texture memory with one Glide call without having to copy it
-		// into a second, suitably sized buffer first.
-		SNES4ALL_SCREEN_PITCH = SNES4ALL_SCREEN_PITCH = 256 * sizeof (uint16);
-		SNES4ALL_SCREEN_PITCH2 = 256;
-                SNES4ALL_SCREEN_PITCH = SNES4ALL_SCREEN_PITCH;
-                SNES4ALL_SCREEN_PITCH2 = 256;
-	    }
-	    else
-#endif
-#ifdef USE_OPENGL
-            if (Settings.OpenGLEnable)
-            {
-                SNES4ALL_SCREEN_PITCH = SNES4ALL_SCREEN_PITCH = 256 * sizeof (uint16);
-                SNES4ALL_SCREEN_PITCH2 = 256;
-                SNES4ALL_SCREEN_PITCH = SNES4ALL_SCREEN_PITCH;
-                SNES4ALL_SCREEN_PITCH2 = 256;
-            }
-#endif
 	}
 	PPU.RecomputeClipWindows = TRUE;
 	GFX.DepthDelta = GFX.SubZBuffer - GFX.ZBuffer;
@@ -649,18 +741,16 @@ void S9xStartScreenRefresh ()
 #endif
 }
 
-void RenderLine (uint8 C)
-{
+
+void RenderLine (uint8 C) {
     snes4all_prof_start(2);
-    if (IPPU.RenderThisFrame)
-	{
+    if (IPPU.RenderThisFrame) {
 		LineData[C].BG[0].VOffset = PPU.BG[0].VOffset + 1;
 		LineData[C].BG[0].HOffset = PPU.BG[0].HOffset;
 		LineData[C].BG[1].VOffset = PPU.BG[1].VOffset + 1;
 		LineData[C].BG[1].HOffset = PPU.BG[1].HOffset;
 
-		if (PPU.BGMode == 7)
-		{
+		if (PPU.BGMode == 7) {
 			struct SLineMatrixData *p = &LineMatrixData [C];
 			p->MatrixA = PPU.MatrixA;
 			p->MatrixB = PPU.MatrixB;
@@ -668,17 +758,12 @@ void RenderLine (uint8 C)
 			p->MatrixD = PPU.MatrixD;
 			p->CentreX = PPU.CentreX;
 			p->CentreY = PPU.CentreY;
-		}
-		else
-		{
+		} else {
 			if (Settings.StarfoxHack && !PPU.BG[2].VOffset  &&
-				PPU.BG[2].HOffset == 0xe000)
-			{
+				PPU.BG[2].HOffset == 0xe000) {
 				LineData[C].BG[2].VOffset = 0xe1;
 				LineData[C].BG[2].HOffset = 0;
-			}
-			else
-			{
+			} else {
 				LineData[C].BG[2].VOffset = PPU.BG[2].VOffset + 1;
 				LineData[C].BG[2].HOffset = PPU.BG[2].HOffset;
 				LineData[C].BG[3].VOffset = PPU.BG[3].VOffset + 1;
@@ -689,7 +774,8 @@ void RenderLine (uint8 C)
 	} else {
 		// if we're not rendering this frame, we still need to update this 
 		// XXX: Check ForceBlank? Or anything else?
-		if(IPPU.OBJChanged) S9xSetupOBJ();
+		if(IPPU.OBJChanged)
+			S9xSetupOBJ();
 		PPU.RangeTimeOver |= GFX.OBJLines[C].RTOFlags;
 	}
 	snes4all_prof_end(2);
@@ -697,7 +783,42 @@ void RenderLine (uint8 C)
 
 void S9xEndScreenRefresh ()
 {
+//puts("S9xEndScreenRefresh");
     snes4all_prof_start(3);
+#ifndef USE_OLD_END_REFRESH
+	    IPPU.HDMA = 0;
+	    // Bits 7 and 6 of $4212 are computed when read in S9xGetPPU.
+	    IPPU.MaxBrightness = PPU.Brightness;
+	    PPU.ForcedBlanking = (CMemory_FillRAM [0x2100] >> 7) & 1;
+
+		if(!PPU.ForcedBlanking){
+			PPU.OAMAddr = PPU.SavedOAMAddr;
+			{
+				uint8 tmp = 0;
+				if(PPU.OAMPriorityRotation)
+					tmp = (PPU.OAMAddr&0xFE)>>1;
+				if((PPU.OAMFlip&1) || PPU.FirstSprite!=tmp){
+					PPU.FirstSprite=tmp;
+					IPPU.OBJChanged=TRUE;
+				}
+			}
+			PPU.OAMFlip = 0;
+		}
+
+	    CMemory_FillRAM[0x4210] = 0x80 |Model->_5A22;
+	    if (CMemory_FillRAM[0x4200] & 0x80)
+	    {
+			CPU.NMIActive = TRUE;
+			CPU.Flags |= NMI_FLAG;
+			CPU.NMICycleCount = CPU.NMITriggerPoint;
+	    }
+#endif
+#ifdef USE_GL	
+    static uint8 last_bgmode=0;
+    if (PPU.BGMode == 7 && videogl_hw_render && last_bgmode!=7)
+	ZeroMemory((uint32 *)GFX.Screen,SNES4ALL_SCREEN_PITCH*240);
+    last_bgmode=PPU.BGMode;
+#endif
 //printf("S9xEndScreenRefresh %i\n",IPPU.RenderThisFrame);
 //    IPPU.HDMAStarted = FALSE;
     if (IPPU.RenderThisFrame)
@@ -719,7 +840,10 @@ void S9xEndScreenRefresh ()
             S9xDoScreenshot(SNES_WIDTH, IPPU.RenderedScreenHeight);
 #endif
 #if defined(DISPLAY_FRAMERATE) && !defined(DEBUG_FRAMESKIP)
+	if (snes4all_displayframerate)
 	    S9xDisplayFrameRate ();
+#endif
+#ifdef USE_GL
 	    if (GFX.InfoString)
 	    	S9xDisplayString (GFX.InfoString);
 #endif
@@ -728,22 +852,6 @@ void S9xEndScreenRefresh ()
 			 TRUE);
     }
     S9xApplyCheats ();
-#ifdef DEBUGGER
-    if (CPU.Flags & FRAME_ADVANCE_FLAG)
-    {
-	if (ICPU.FrameAdvanceCount)
-	{
-	    ICPU.FrameAdvanceCount--;
-	    IPPU.RenderThisFrame = TRUE;
-	    IPPU.FrameSkip = 0;
-	}
-	else
-	{
-	    CPU.Flags &= ~FRAME_ADVANCE_FLAG;
-	    CPU.Flags |= DEBUG_MODE_FLAG;
-	}
-    }
-#endif
     if (CPU.SRAMModified)
     {
 	if (!CPU.AutoSaveTimer)
@@ -763,7 +871,7 @@ void S9xEndScreenRefresh ()
     snes4all_prof_end(3);
 }
 
-#if defined(DISPLAY_FRAMERATE) && !defined(DEBUG_FRAMESKIP)
+#ifdef USE_GL
 void S9xSetInfoString (const char *string)
 {
     GFX.InfoString = string;
@@ -775,9 +883,19 @@ static __inline__ void SelectTileRenderer (bool8 normal)
 {
     if (normal)
     {
-	DrawTilePtr = DrawTile16;
-	DrawClippedTilePtr = DrawClippedTile16;
-	DrawLargePixelPtr = DrawLargePixel16;
+//puts("SelectTileRender normal");
+#ifdef USE_GL
+	if (videogl_hw_render) {
+		DrawTilePtr = DrawTile16hw;
+		DrawClippedTilePtr = DrawClippedTile16hw;
+		DrawLargePixelPtr = DrawLargePixel16hw;
+	} else
+#endif
+	{
+		DrawTilePtr = DrawTile16;
+		DrawClippedTilePtr = DrawClippedTile16;
+		DrawLargePixelPtr = DrawLargePixel16;
+	}
     }
     else
     {
@@ -787,22 +905,55 @@ static __inline__ void SelectTileRenderer (bool8 normal)
 	    {
 		if (GFX.r2130 & 2)
 		{
-		    DrawTilePtr = DrawTile16Sub1_2;
-		    DrawClippedTilePtr = DrawClippedTile16Sub1_2;
+//puts("SelectTileRender Sub1_2");
+#ifdef USE_GL
+		    if (videogl_hw_render) {
+			    DrawTilePtr = DrawTile16Sub1_2hw;
+			    DrawClippedTilePtr = DrawClippedTile16Sub1_2hw;
+		    }else
+#endif
+		    {
+			    DrawTilePtr = DrawTile16Sub1_2;
+			    DrawClippedTilePtr = DrawClippedTile16Sub1_2;
+		    } 
 		}
 		else
 		{
+//puts("SelectTileRender FixedSub1_2");
 		    // Fixed colour substraction
-		    DrawTilePtr = DrawTile16FixedSub1_2;
-		    DrawClippedTilePtr = DrawClippedTile16FixedSub1_2;
+#ifdef USE_GL
+		    if (videogl_hw_render) {
+		    	DrawTilePtr = DrawTile16FixedSub1_2hw;
+			DrawClippedTilePtr = DrawClippedTile16FixedSub1_2hw;
+		    }else
+#endif
+		    {
+		    	DrawTilePtr = DrawTile16FixedSub1_2;
+			DrawClippedTilePtr = DrawClippedTile16FixedSub1_2;
+		    }
 		}
-		DrawLargePixelPtr = DrawLargePixel16Sub1_2;
+#ifdef USE_GL
+		if (videogl_hw_render)
+			DrawLargePixelPtr = DrawLargePixel16Sub1_2hw;
+		else
+#endif
+			DrawLargePixelPtr = DrawLargePixel16Sub1_2;
 	    }
 	    else
 	    {
-		DrawTilePtr = DrawTile16Sub;
-		DrawClippedTilePtr = DrawClippedTile16Sub;
-		DrawLargePixelPtr = DrawLargePixel16Sub;
+//puts("SelectTileRender Sub");
+#ifdef USE_GL
+		if (videogl_hw_render) {
+			DrawTilePtr = DrawTile16Subhw;
+			DrawClippedTilePtr = DrawClippedTile16Subhw;
+			DrawLargePixelPtr = DrawLargePixel16Subhw;
+		}else
+#endif
+	        {	    
+			DrawTilePtr = DrawTile16Sub;
+			DrawClippedTilePtr = DrawClippedTile16Sub;
+			DrawLargePixelPtr = DrawLargePixel16Sub;
+		}
 	    }
 	}
 	else
@@ -811,22 +962,55 @@ static __inline__ void SelectTileRenderer (bool8 normal)
 	    {
 		if (GFX.r2130 & 2)
 		{
-		    DrawTilePtr = DrawTile16Add1_2;
-		    DrawClippedTilePtr = DrawClippedTile16Add1_2;
+//puts("SelectTileRender Add1_2");
+#ifdef USE_GL
+		if (videogl_hw_render) {
+		    	DrawTilePtr = DrawTile16Add1_2hw;
+		    	DrawClippedTilePtr = DrawClippedTile16Add1_2hw;
+		    } else
+#endif
+		    {
+		    	DrawTilePtr = DrawTile16Add1_2;
+		    	DrawClippedTilePtr = DrawClippedTile16Add1_2;
+		    }
 		}
 		else
 		{
+//puts("SelectTileRender FixedAdd1_2");
 		    // Fixed colour addition
-		    DrawTilePtr = DrawTile16FixedAdd1_2;
-		    DrawClippedTilePtr = DrawClippedTile16FixedAdd1_2;
+#ifdef USE_GL
+		    if (videogl_hw_render) {
+		    	DrawTilePtr = DrawTile16FixedAdd1_2hw;
+		    	DrawClippedTilePtr = DrawClippedTile16FixedAdd1_2hw;
+		    } else
+#endif
+		    {
+		    	DrawTilePtr = DrawTile16FixedAdd1_2;
+		    	DrawClippedTilePtr = DrawClippedTile16FixedAdd1_2;
+		    }
 		}
-		DrawLargePixelPtr = DrawLargePixel16Add1_2;
+#ifdef USE_GL
+		if (videogl_hw_render)
+			DrawLargePixelPtr = DrawLargePixel16Add1_2hw;
+		else
+#endif
+			DrawLargePixelPtr = DrawLargePixel16Add1_2;
 	    }
 	    else
 	    {
-		DrawTilePtr = DrawTile16Add;
-		DrawClippedTilePtr = DrawClippedTile16Add;
-		DrawLargePixelPtr = DrawLargePixel16Add;
+//puts("SelectTileRender Add");
+#ifdef USE_GL
+		if (videogl_hw_render) {
+			DrawTilePtr = DrawTile16Addhw;
+			DrawClippedTilePtr = DrawClippedTile16Addhw;
+			DrawLargePixelPtr = DrawLargePixel16Addhw;
+		}else
+#endif
+		{
+			DrawTilePtr = DrawTile16Add;
+			DrawClippedTilePtr = DrawClippedTile16Add;
+			DrawLargePixelPtr = DrawLargePixel16Add;
+		}
 	    }
 	}
     }
@@ -834,6 +1018,11 @@ static __inline__ void SelectTileRenderer (bool8 normal)
 
 void S9xSetupOBJ ()
 {
+//return;
+//static int cuantos=0;
+//cuantos++;
+//if (cuantos!=2) return;
+//puts("SetupOBJ");
 #ifdef MK_DEBUG_RTO
 	if(Settings.BGLayering) fprintf(stderr, "Entering SetupOBJS()\n");
 #endif
@@ -908,6 +1097,10 @@ void S9xSetupOBJ ()
 		}
 		uint8 FirstSprite=PPU.FirstSprite;
 		S=FirstSprite;
+//USE_GL
+//S=(S+39)&0x7F;
+//S=(S+68)&0x7F;
+//for(int ca=0;ca<6;ca++,S=(S+1)&0x7F) {
 		do {
 			if(PPU.OBJ[S].Size){
 				GFX.OBJWidths[S]=LargeWidth; Height=LargeHeight;
@@ -925,6 +1118,7 @@ void S9xSetupOBJ ()
 					GFX.OBJVisibleTiles[S]=GFX.OBJWidths[S]>>3;
 				}
 				for(uint8 line=0, Y=(uint8)(PPU.OBJ[S].VPos&0xff); line<Height; Y++, line++){
+//printf("S=%i, Y=%i, H=%i\n",S,Y,Height);
 					if(Y>=SNES_HEIGHT_EXTENDED) continue;
 					if(LineOBJ[Y]>=32){
 						GFX.OBJLines[Y].RTOFlags|=0x40;
@@ -933,8 +1127,13 @@ void S9xSetupOBJ ()
 #endif
 						continue;
 					}
+#ifdef USE_GL
+					if ((!((line)&7))||(!videogl_hw_render))
+#endif
+					{
 					GFX.OBJLines[Y].Tiles-=GFX.OBJVisibleTiles[S];
 					if(GFX.OBJLines[Y].Tiles<0) GFX.OBJLines[Y].RTOFlags|=0x80;
+//printf("GFX.OBJLines[Y=%i].OBJ[LineOBJ[Y]=%i].Sprite=S=%i (%i)\n",Y,LineOBJ[Y],S,!((line)&7));
 					GFX.OBJLines[Y].OBJ[LineOBJ[Y]].Sprite=S;
 					if(PPU.OBJ[S].VFlip){
 						// Yes, Width not Height. It so happens that the
@@ -944,10 +1143,13 @@ void S9xSetupOBJ ()
 						GFX.OBJLines[Y].OBJ[LineOBJ[Y]].Line=line;
 					}
 					LineOBJ[Y]++;
+					}
 				}
 			}
 			S=(S+1)&0x7F;
 		} while(S!=FirstSprite);
+//} while(0);
+//}
 
 		for(int Y=1; Y<SNES_HEIGHT_EXTENDED; Y++){
 			GFX.OBJLines[Y].RTOFlags |= GFX.OBJLines[Y-1].RTOFlags;
@@ -1039,6 +1241,8 @@ void S9xSetupOBJ ()
 
 void DrawOBJS (bool8 OnMain = FALSE, uint8 D = 0)
 {
+//puts("DrawOBJS");
+//return;
 //printf("DrawOBJS %i, %i\n",OnMain,D);
 #ifdef MK_DEBUG_RTO
 	if(Settings.BGLayering) fprintf(stderr, "Entering DrawOBJS() for %d-%d\n", GFX.StartY, GFX.EndY);
@@ -1105,7 +1309,10 @@ if(Settings.BGLayering) {
 #endif
 
 	GFX.Z1 = D + 2;
-
+#ifdef USE_GL
+	for(int NS=0x7f;NS>=0;NS--){
+		if (!videogl_hw_render) NS=0;
+#endif
 	for(uint32 Y=GFX.StartY, Offset=getY2(Y); Y<=GFX.EndY; Y++, Offset+=SNES4ALL_SCREEN_PITCH2){
 #ifdef MK_DEBUG_RTO
 		bool8 Flag=0;
@@ -1116,8 +1323,17 @@ if(Settings.BGLayering) {
 #else
 		int tiles=GFX.OBJLines[Y].Tiles;
 #endif
+//printf("Y=%i S=%i\n",Y,GFX.OBJLines[Y].OBJ[0].Sprite);
 		for (int S = GFX.OBJLines[Y].OBJ[I].Sprite; S >= 0 && I<32; S = GFX.OBJLines[Y].OBJ[++I].Sprite)
 		{
+#ifdef USE_GL
+			if(videogl_hw_render) {
+//				if (S!=NS) continue;
+				if (S<NS) continue;
+				else if (S>NS) break;
+			}
+#endif
+//printf("S=%i, Y=%i, I=%i, next=%i, Z1=%i\n",S,Y,I,GFX.OBJLines[Y].OBJ[I+1].Sprite,GFX.Z1);
 			tiles+=GFX.OBJVisibleTiles[S];
 			if(tiles<=0){
 #ifdef MK_DEBUG_RTO
@@ -1136,6 +1352,9 @@ if(Settings.BGLayering) {
 }
 #endif
 
+#ifdef USE_GL
+			if (!videogl_hw_render)
+#endif
 			if (OnMain && SUB_OR_ADD(4))
 			{
 				SelectTileRenderer (!GFX.Pseudo && PPU.OBJ [S].Palette < 4);
@@ -1143,7 +1362,21 @@ if(Settings.BGLayering) {
 
 			int BaseTile = (((GFX.OBJLines[Y].OBJ[I].Line<<1) + (PPU.OBJ[S].Name&0xf0))&0xf0) | (PPU.OBJ[S].Name&0x100) | (PPU.OBJ[S].Palette << 10);
 			int TileX = PPU.OBJ[S].Name&0x0f;
+#ifndef USE_GL
 			int TileLine = (GFX.OBJLines[Y].OBJ[I].Line&7)*8;
+#else
+			int TileLine, TileCount;
+			if (videogl_hw_render) {
+				TileLine=0;
+				TileCount=8;
+				if (GFX.OBJLines[Y].OBJ[I].Line&7)
+					BaseTile |= V_FLIP;
+			} else {
+				TileLine = (GFX.OBJLines[Y].OBJ[I].Line&7)*8;
+				TileCount = 1;
+			}
+
+#endif
 			int TileInc = 1;
 
 			if (PPU.OBJ[S].HFlip)
@@ -1175,11 +1408,21 @@ if(Settings.BGLayering) {
 				}
 
 				if(X+8<NextPos){
-					if(WinStat) (*DrawTilePtr) (BaseTile|TileX, O, TileLine, 1);
+#ifndef USE_GL
+					if(WinStat) {(*DrawTilePtr) (BaseTile|TileX, O, TileLine, 1);
+#else
+					if(WinStat) {(*DrawTilePtr) (BaseTile|TileX, O, TileLine, TileCount);
+#endif
+//printf("Pintado %i, Z2=%i\n",BaseTile|TileX,GFX.Z2);
+}
 				} else {
 					int x=X;
 					while(x<X+8){
+#ifndef USE_GL
 						if(WinStat) (*DrawClippedTilePtr) (BaseTile|TileX, O, x-X, NextPos-x, TileLine, 1);
+#else
+						if(WinStat) (*DrawClippedTilePtr) (BaseTile|TileX, O, x-X, NextPos-x, TileLine, TileCount);
+#endif
 						x=NextPos;
 						for(; WinIdx<7 && Windows[WinIdx].Pos<=x; WinIdx++);
 						if(!WinIdx) WinStat=FALSE;
@@ -1194,6 +1437,9 @@ if(Settings.BGLayering) {
 		if(Settings.BGLayering) if(Flag) fprintf(stderr, "\n");
 #endif
 	}
+#ifdef USE_GL
+	}
+#endif
 #ifdef MK_DEBUG_RTO
 	if(Settings.BGLayering) fprintf(stderr, "Exiting DrawOBJS() for %d-%d\n", GFX.StartY, GFX.EndY);
 #endif
@@ -1764,6 +2010,7 @@ void DrawBackgroundOffset (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
     }
 }
 
+#if 0
 void DrawBackgroundMode5 (uint32 /* BGMODE */, uint32 bg, uint8 Z1, uint8 Z2)
 {
     CHECK_SOUND();
@@ -2086,9 +2333,15 @@ void DrawBackgroundMode5 (uint32 /* BGMODE */, uint32 bg, uint8 Z1, uint8 Z2)
 	}
     }
 }
+#endif
 
 void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 {
+//return;
+//static int cuenta=0;
+//cuenta++;
+//if (cuenta!=1) return;
+//printf("DrawBackground, BGMode=%i, bg=%i, Z1=%i, Z2=%i\n",BGMode,bg,Z1,Z2);
 //    GFX.PixSize = 1;
 	
     BG.TileSize = BGSizes [PPU.BG[bg].BGSize];
@@ -2098,6 +2351,7 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
     BG.NameSelect = 0;
     BG.Buffer = IPPU.TileCache [Depths [BGMode][bg]];
     BG.Buffered = IPPU.TileCached [Depths [BGMode][bg]];
+//printf("BG.Buffered = %i\n",Depths[BGMode][bg]);
     BG.PaletteShift = PaletteShifts[BGMode][bg];
     BG.PaletteMask = PaletteMasks[BGMode][bg];
 #ifdef DIRECT_COLOR_MAP
@@ -2105,12 +2359,46 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 		(GFX.r2130 & 1);
 #endif
 	
+#ifdef USE_GL
+    if (BG.BitShift>4) videogl_8bit_tiles=1;
+//  if (videogl_clip_enabled<=bg) {
+    if (!videogl_clip) {
+	    videogl_clip_enabled=bg;
+	    videogl_clip=GFX.pCurrentClip;
+    } else {
+	    unsigned aleft=0;
+	    unsigned aright=256;
+	    unsigned fleft=0;
+	    unsigned fright=256;
+	    for (int i=0;i<videogl_clip->Count[videogl_clip_enabled];i++) {
+		    unsigned Left=videogl_clip->Left[i][videogl_clip_enabled];
+		    unsigned Right=videogl_clip->Right[i][videogl_clip_enabled];
+		    if (Right<=Left) continue;
+		    if (Left>aleft) aleft=Left;
+		    if (Right<aright) aright=Right;
+	    }
+	    for (int i=0;i<GFX.pCurrentClip->Count[bg];i++) {
+		    unsigned Left=GFX.pCurrentClip->Left[i][bg];
+		    unsigned Right=GFX.pCurrentClip->Right[i][bg];
+		    if (Right<=Left) continue;
+		    if (Left>fleft) fleft=Left;
+		    if (Right<fright) fright=Right;
+	    }
+	    if (fleft<aleft || fright>aright) {
+		    videogl_clip_enabled=bg;
+		    videogl_clip=GFX.pCurrentClip;
+	    }
+    }
+#endif
     if (PPU.BGMosaic [bg] && PPU.Mosaic > 1)
     {
 		DrawBackgroundMosaic (BGMode, bg, Z1, Z2);
 		return;
 		
     }
+#ifdef USE_GL
+    if (!videogl_hw_render)
+#endif
     switch (BGMode)
     {
     case 2:
@@ -2178,12 +2466,23 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 		OffsetMask = 0x1ff;
 		OffsetShift = 3;
     }
-	
+//static int cuantos=0;
+//cuantos++;
+//if (cuantos!=3) return;
+//printf("BGMode=%i, Y=%i(%i) to %i\n",BGMode,(GFX.StartY&7?GFX.StartY-((GFX.StartY+8)&7):GFX.StartY),GFX.StartY,GFX.EndY);
+#if 0
+    //def USE_GL
+    for (uint32 Y = (GFX.StartY&7?GFX.StartY-((GFX.StartY+8)&7):GFX.StartY); Y <= GFX.EndY; Y += Lines)
+#else
     for (uint32 Y = GFX.StartY; Y <= GFX.EndY; Y += Lines)
+#endif
     {
+//if (Y>0) { Lines=1; continue;}
+//printf("%i Y=%i\n",cuantos,Y);
 		uint32 VOffset = LineData [Y].BG[bg].VOffset;
 		uint32 HOffset = LineData [Y].BG[bg].HOffset;
 		int VirtAlign = (Y + VOffset) & 7;
+//printf("Y=%i, VOffset=%i, VirtAlign=%i, HOffset=%i\n",Y,VOffset,VirtAlign,HOffset);
 		
 		for (Lines = 1; Lines < 8 - VirtAlign; Lines++)
 			if ((VOffset != LineData [Y + Lines].BG[bg].VOffset) ||
@@ -2194,6 +2493,10 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 				Lines = GFX.EndY + 1 - Y;
 			
 			VirtAlign <<= 3;
+#ifdef USE_GL
+//			if (VirtAlign && Y) continue;
+//			if (Y+8>GFX.EndY) break;
+#endif
 			
 			uint32 ScreenLine = (VOffset + Y) >> OffsetShift;
 			uint32 t1;
@@ -2242,6 +2545,7 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 				}
 				
 				uint32 s = Left * GFX_PIXSIZE + getY2(Y);
+//printf("s=%X (%i,%i), Left=%i, Y=%i\n",s,(((unsigned)s)&0xff),((unsigned)s)>>8,Left,Y);
 				uint32 HPos = (HOffset + Left) & OffsetMask;
 				
 				uint32 Quot = HPos >> 3;
@@ -2274,7 +2578,8 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 					s -= Offset * GFX_PIXSIZE;
 					Tile = READ_2BYTES(t);
 					GFX.Z1 = GFX.Z2 = depths [(Tile & 0x2000) >> 13];
-					
+				
+#if 1
 					if (BG.TileSize == 8)
 					{
 						(*DrawClippedTilePtr) (Tile, s, Offset, Count, VirtAlign,
@@ -2311,6 +2616,7 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 									Offset, Count, VirtAlign, Lines);
 							}
 					}
+#endif
 					
 					if (BG.TileSize == 8)
 					{
@@ -2340,7 +2646,8 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 				{
 					Tile = READ_2BYTES(t);
 					GFX.Z1 = GFX.Z2 = depths [(Tile & 0x2000) >> 13];
-					
+				
+#if 1
 					if (BG.TileSize != 8)
 					{
 						if (Tile & H_FLIP)
@@ -2377,7 +2684,9 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 						}
 					}
 					else
+#endif
 					{
+//if ((C==7 && Y==79 && cuantos==1) || (C==12 && Y==63 && cuantos==2))
 						(*DrawTilePtr) (Tile, s, VirtAlign, Lines);
 					}
 					
@@ -2406,6 +2715,7 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 					Tile = READ_2BYTES(t);
 					GFX.Z1 = GFX.Z2 = depths [(Tile & 0x2000) >> 13];
 					
+#if 1 
 					if (BG.TileSize == 8)
 						(*DrawClippedTilePtr) (Tile, s, 0, Count, VirtAlign, 
 						Lines);
@@ -2442,6 +2752,7 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 								Lines);
 						}
 					}
+#endif
 				}
 		}
     }
@@ -2459,7 +2770,6 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 #else
 #define CHECK_DIRECTCOLOUR 
 #endif
-
 
 #define RENDER_BACKGROUND_MODE7(TYPE,FUNC) \
     CHECK_SOUND(); \
@@ -2547,7 +2857,7 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 		    if (GFX.Z1 > *d && (b & GFX.Mode7Mask) ) \
 		    { \
 			*p = (FUNC); \
-			*d = GFX.Z1; \
+			*d = GFX.Z1;  \
 		    } \
 		} \
 	    } \
@@ -2576,7 +2886,7 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 			    X = (x + HOffset) & 7; \
 			    Y = (yy + CentreY) & 7; \
 			    uint32 b = *(VRAM1 + ((Y & 7) << 4) + ((X & 7) << 1)); \
-			    GFX.Z1 = Mode7Depths [(b & GFX.Mode7PriorityMask) >> 7]; \
+			    GFX.Z1 = Mode7Depths [(b & GFX.Mode7PriorityMask) >> 7];  \
 			    if (GFX.Z1 > *d && (b & GFX.Mode7Mask) ) \
 			    { \
 				*p = (FUNC); \
@@ -2589,18 +2899,437 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 	} \
     }
 
-#if  0
-static void DrawBGMode7Background (uint8 *Screen, int bg)
-{
-    RENDER_BACKGROUND_MODE7 (uint8, (uint8) (b & GFX.Mode7Mask))
+#ifdef USE_GL
+
+static void DrawBGMode7Background16_nogl (uint8 *Screen, int bg) { RENDER_BACKGROUND_MODE7 (uint16, GFX.ScreenColors [b & GFX.Mode7Mask]); }
+
+#define RENDER_BACKGROUND_MODE7_GL(TYPE,FUNC) \
+    videogl_used_screen=GFX.Z1=Mode7Depths[0]; \
+    CHECK_SOUND(); \
+\
+    const uint8 *VRAM1 = CMemory_VRAM + 1; \
+	    CHECK_DIRECTCOLOUR \
+	GFX.ScreenColors = IPPU.ScreenColors; \
+\
+    int dir; \
+    int startx, endx; \
+    uint32 Left = 0; \
+    uint32 Right = 256; \
+    const uint32 repeat=PPU.Mode7Repeat; \
+    const uint8 mask=GFX.Mode7Mask; \
+    const uint32 endY=GFX.EndY; \
+    const uint32 hflip=PPU.Mode7HFlip; \
+    const uint32 vflip=PPU.Mode7VFlip; \
+    const uint32 currentCount=GFX.pCurrentClip->Count [bg]; \
+\
+    Screen += getY(GFX.StartY); \
+    const struct SLineMatrixData *l = &LineMatrixData [GFX.StartY]; \
+\
+    for (uint32 Line = GFX.StartY; Line <= endY; Line++, Screen += SNES4ALL_SCREEN_PITCH, l++) \
+    { \
+	int yy; \
+\
+	const int32 HOffset = ((int32) LineData [Line].BG[0].HOffset << M7) >> M7; \
+	const int32 VOffset = ((int32) LineData [Line].BG[0].VOffset << M7) >> M7; \
+\
+	const int32 CentreX = ((int32) l->CentreX << M7) >> M7; \
+	const int32 CentreY = ((int32) l->CentreY << M7) >> M7; \
+\
+	if (vflip) \
+	    yy = 255 - (int) Line; \
+	else \
+	    yy = Line; \
+\
+	yy += CLIP_10_BIT_SIGNED(VOffset - CentreY); \
+\
+	const int BB = l->MatrixB * yy + (CentreX << 8); \
+	const int DD = l->MatrixD * yy + (CentreY << 8); \
+\
+	for (uint32 clip = 0; clip < currentCount; clip++) \
+	{ \
+	    { \
+		Left = GFX.pCurrentClip->Left [clip][bg]; \
+		Right = GFX.pCurrentClip->Right [clip][bg]; \
+		if (Right <= Left) \
+		    continue; \
+	    } \
+	    TYPE *p = (TYPE *) Screen + Left; \
+	    int aa, cc; \
+\
+	    if (hflip) \
+	    { \
+		startx = Right - 1; \
+		endx = Left - 1; \
+		dir = -1; \
+		aa = -l->MatrixA; \
+		cc = -l->MatrixC; \
+	    } \
+	    else \
+	    { \
+		startx = Left; \
+		endx = Right; \
+		dir = 1; \
+		aa = l->MatrixA; \
+		cc = l->MatrixC; \
+	    } \
+\
+	    const int xx = startx + CLIP_10_BIT_SIGNED(HOffset - CentreX); \
+	    int AA = (l->MatrixA * xx) + BB; \
+	    int CC = (l->MatrixC * xx) + DD; \
+\
+	    if (!repeat) \
+	    { \
+		for (int x = startx; x != endx; x += dir, AA += aa, CC += cc, p++) \
+		{ \
+		    const int X = ((AA) >> 8) & 0x3ff; \
+		    const int Y = ((CC) >> 8) & 0x3ff; \
+		    const uint8 b = mask & (*( ((uint8 *)(VRAM1 + (CMemory_VRAM[((Y & ~7) << 5) + ((X >> 2) & ~1)] << 7))) + ((Y & 7) << 4) + ((X & 7) << 1))); \
+		    *p = (FUNC); \
+		} \
+	    } \
+	    else \
+	    { \
+		if (repeat==3) { \
+			for (int x = startx; x != endx; x += dir, AA += aa, CC += cc, p++) \
+			{ \
+			    const int X = ((AA) >> 8); \
+			    const int Y = ((CC) >> 8); \
+			    if (!((X | Y) & ~0x3ff)) \
+			    { \
+				const uint8 b = mask & (*( ((uint8 *)(VRAM1 + (CMemory_VRAM[((Y & ~7) << 5) + ((X >> 2) & ~1)] << 7))) + ((Y & 7) << 4) + ((X & 7) << 1))); \
+				*p = (FUNC); \
+			    } \
+			    else \
+			    { \
+				    const int X = (x + HOffset) & 7; \
+				    const int Y = (yy + CentreY) & 7; \
+				    const uint8 b = mask & (*(VRAM1 + ((Y & 7) << 4) + ((X & 7) << 1)));  \
+				    *p = (FUNC); \
+			    } \
+			} \
+		} else { \
+			for (int x = startx; x != endx; x += dir, AA += aa, CC += cc, p++) \
+			{ \
+			    const int X = ((AA) >> 8); \
+			    const int Y = ((CC) >> 8); \
+			    if (!((X | Y) & ~0x3ff)) \
+			    { \
+				const uint8 b = mask & (*( ((uint8 *)(VRAM1 + (CMemory_VRAM[((Y & ~7) << 5) + ((X >> 2) & ~1)] << 7))) + ((Y & 7) << 4) + ((X & 7) << 1))); \
+				*p = (FUNC); \
+			    } else { \
+				const uint8 b = 0; \
+				*p = (FUNC); \
+			    } \
+			} \
+		} \
+	    } \
+	} \
+    }
+static void DrawBGMode7Background16_gl (uint8 *Screen, int bg) {
+	const unsigned short back_zero=IPPU.ScreenColors[0];
+	IPPU.ScreenColors[0]=0;
+       	RENDER_BACKGROUND_MODE7_GL (uint16, GFX.ScreenColors [b])
+	IPPU.ScreenColors[0]=back_zero;
+	videogl_screen_endY=GFX.EndY;
+}
+
+#define RENDER_BACKGROUND_MODE7_GL_noclip_repeat0(TYPE,FUNC) \
+    videogl_used_screen=GFX.Z1=Mode7Depths[0]; \
+    CHECK_SOUND(); \
+\
+    const uint8 *VRAM1 = CMemory_VRAM + 1; \
+	    CHECK_DIRECTCOLOUR \
+	GFX.ScreenColors = IPPU.ScreenColors; \
+\
+    int dir; \
+    int startx, endx; \
+    uint32 Left = 0; \
+    uint32 Right = 256; \
+    const uint8 mask=GFX.Mode7Mask; \
+    const uint32 endY=GFX.EndY; \
+    const uint32 hflip=PPU.Mode7HFlip; \
+    const uint32 vflip=PPU.Mode7VFlip; \
+\
+    Screen += getY(GFX.StartY); \
+    const struct SLineMatrixData *l = &LineMatrixData [GFX.StartY]; \
+\
+    for (uint32 Line = GFX.StartY; Line <= endY; Line++, Screen += SNES4ALL_SCREEN_PITCH, l++) \
+    { \
+	int yy; \
+\
+	const int32 HOffset = ((int32) LineData [Line].BG[0].HOffset << M7) >> M7; \
+	const int32 VOffset = ((int32) LineData [Line].BG[0].VOffset << M7) >> M7; \
+\
+	const int32 CentreX = ((int32) l->CentreX << M7) >> M7; \
+	const int32 CentreY = ((int32) l->CentreY << M7) >> M7; \
+\
+	if (vflip) \
+	    yy = 255 - (int) Line; \
+	else \
+	    yy = Line; \
+\
+	yy += CLIP_10_BIT_SIGNED(VOffset - CentreY); \
+\
+	const int BB = l->MatrixB * yy + (CentreX << 8); \
+	const int DD = l->MatrixD * yy + (CentreY << 8); \
+\
+	    TYPE *p = (TYPE *) Screen + Left; \
+	    int aa, cc; \
+\
+	    if (hflip) \
+	    { \
+		startx = Right - 1; \
+		endx = Left - 1; \
+		dir = -1; \
+		aa = -l->MatrixA; \
+		cc = -l->MatrixC; \
+	    } \
+	    else \
+	    { \
+		startx = Left; \
+		endx = Right; \
+		dir = 1; \
+		aa = l->MatrixA; \
+		cc = l->MatrixC; \
+	    } \
+\
+	    const int xx = startx + CLIP_10_BIT_SIGNED(HOffset - CentreX); \
+	    int AA = (l->MatrixA * xx) + BB; \
+	    int CC = (l->MatrixC * xx) + DD; \
+\
+		for (int x = startx; x != endx; x += dir, AA += aa, CC += cc, p++) \
+		{ \
+		    const int X = ((AA) >> 8) & 0x3ff; \
+		    const int Y = ((CC) >> 8) & 0x3ff; \
+		    const uint8 b = mask & (*( ((uint8 *)(VRAM1 + (CMemory_VRAM[((Y & ~7) << 5) + ((X >> 2) & ~1)] << 7))) + ((Y & 7) << 4) + ((X & 7) << 1))); \
+		    *p = (FUNC); \
+		} \
+    }
+static void DrawBGMode7Background16_gl_noclip_repeat0 (uint8 *Screen, int bg) {
+	const unsigned short back_zero=IPPU.ScreenColors[0];
+	IPPU.ScreenColors[0]=0;
+       	RENDER_BACKGROUND_MODE7_GL_noclip_repeat0 (uint16, GFX.ScreenColors [b])
+	IPPU.ScreenColors[0]=back_zero;
+	videogl_screen_endY=GFX.EndY;
+}
+
+#define RENDER_BACKGROUND_MODE7_GL_noclip_repeat3(TYPE,FUNC) \
+    videogl_used_screen=GFX.Z1=Mode7Depths[0]; \
+    CHECK_SOUND(); \
+\
+    const uint8 *VRAM1 = CMemory_VRAM + 1; \
+	    CHECK_DIRECTCOLOUR \
+	GFX.ScreenColors = IPPU.ScreenColors; \
+\
+    int dir; \
+    int startx, endx; \
+    uint32 Left = 0; \
+    uint32 Right = 256; \
+    const uint8 mask=GFX.Mode7Mask; \
+    const uint32 endY=GFX.EndY; \
+    const uint32 hflip=PPU.Mode7HFlip; \
+    const uint32 vflip=PPU.Mode7VFlip; \
+\
+    Screen += getY(GFX.StartY); \
+    const struct SLineMatrixData *l = &LineMatrixData [GFX.StartY]; \
+\
+    for (uint32 Line = GFX.StartY; Line <= endY; Line++, Screen += SNES4ALL_SCREEN_PITCH, l++) \
+    { \
+	int yy; \
+\
+	const int32 HOffset = ((int32) LineData [Line].BG[0].HOffset << M7) >> M7; \
+	const int32 VOffset = ((int32) LineData [Line].BG[0].VOffset << M7) >> M7; \
+\
+	const int32 CentreX = ((int32) l->CentreX << M7) >> M7; \
+	const int32 CentreY = ((int32) l->CentreY << M7) >> M7; \
+\
+	if (vflip) \
+	    yy = 255 - (int) Line; \
+	else \
+	    yy = Line; \
+\
+	yy += CLIP_10_BIT_SIGNED(VOffset - CentreY); \
+\
+	const int BB = l->MatrixB * yy + (CentreX << 8); \
+	const int DD = l->MatrixD * yy + (CentreY << 8); \
+\
+	{ \
+	    TYPE *p = (TYPE *) Screen + Left; \
+	    int aa, cc; \
+\
+	    if (hflip) \
+	    { \
+		startx = Right - 1; \
+		endx = Left - 1; \
+		dir = -1; \
+		aa = -l->MatrixA; \
+		cc = -l->MatrixC; \
+	    } \
+	    else \
+	    { \
+		startx = Left; \
+		endx = Right; \
+		dir = 1; \
+		aa = l->MatrixA; \
+		cc = l->MatrixC; \
+	    } \
+\
+	    const int xx = startx + CLIP_10_BIT_SIGNED(HOffset - CentreX); \
+	    int AA = (l->MatrixA * xx) + BB; \
+	    int CC = (l->MatrixC * xx) + DD; \
+\
+	    { \
+			for (int x = startx; x != endx; x += dir, AA += aa, CC += cc, p++) \
+			{ \
+			    const int X = ((AA) >> 8); \
+			    const int Y = ((CC) >> 8); \
+			    if (!((X | Y) & ~0x3ff)) \
+			    { \
+				const uint8 b = mask & (*( ((uint8 *)(VRAM1 + (CMemory_VRAM[((Y & ~7) << 5) + ((X >> 2) & ~1)] << 7))) + ((Y & 7) << 4) + ((X & 7) << 1))); \
+				*p = (FUNC); \
+			    } \
+			    else \
+			    { \
+				    const int X = (x + HOffset) & 7; \
+				    const int Y = (yy + CentreY) & 7; \
+				    const uint8 b = mask & (*(VRAM1 + ((Y & 7) << 4) + ((X & 7) << 1)));  \
+				    *p = (FUNC); \
+			    } \
+			} \
+	    } \
+	} \
+    }
+static void DrawBGMode7Background16_gl_noclip_repeat3 (uint8 *Screen, int bg) {
+	unsigned short back_zero=IPPU.ScreenColors[0];
+	IPPU.ScreenColors[0]=0;
+       	RENDER_BACKGROUND_MODE7_GL_noclip_repeat3 (uint16, GFX.ScreenColors [b])
+	IPPU.ScreenColors[0]=back_zero;
+	videogl_screen_endY=GFX.EndY;
+}
+
+#define RENDER_BACKGROUND_MODE7_GL_noclip(TYPE,FUNC) \
+    videogl_used_screen=GFX.Z1=Mode7Depths[0]; \
+    CHECK_SOUND(); \
+\
+    const uint8 *VRAM1 = CMemory_VRAM + 1; \
+	    CHECK_DIRECTCOLOUR \
+	GFX.ScreenColors = IPPU.ScreenColors; \
+\
+    int dir; \
+    int startx, endx; \
+    uint32 Left = 0; \
+    uint32 Right = 256; \
+    const uint32 repeat=PPU.Mode7Repeat; \
+    const uint8 mask=GFX.Mode7Mask; \
+    const uint32 endY=GFX.EndY; \
+    const uint32 hflip=PPU.Mode7HFlip; \
+    const uint32 vflip=PPU.Mode7VFlip; \
+\
+    Screen += getY(GFX.StartY); \
+    const struct SLineMatrixData *l = &LineMatrixData [GFX.StartY]; \
+\
+    for (uint32 Line = GFX.StartY; Line <= endY; Line++, Screen += SNES4ALL_SCREEN_PITCH, l++) \
+    { \
+	int yy; \
+\
+	const int32 HOffset = ((int32) LineData [Line].BG[0].HOffset << M7) >> M7; \
+	const int32 VOffset = ((int32) LineData [Line].BG[0].VOffset << M7) >> M7; \
+\
+	const int32 CentreX = ((int32) l->CentreX << M7) >> M7; \
+	const int32 CentreY = ((int32) l->CentreY << M7) >> M7; \
+\
+	if (vflip) \
+	    yy = 255 - (int) Line; \
+	else \
+	    yy = Line; \
+\
+	yy += CLIP_10_BIT_SIGNED(VOffset - CentreY); \
+\
+	const int BB = l->MatrixB * yy + (CentreX << 8); \
+	const int DD = l->MatrixD * yy + (CentreY << 8); \
+\
+	{ \
+	    TYPE *p = (TYPE *) Screen + Left; \
+	    int aa, cc; \
+\
+	    if (hflip) \
+	    { \
+		startx = Right - 1; \
+		endx = Left - 1; \
+		dir = -1; \
+		aa = -l->MatrixA; \
+		cc = -l->MatrixC; \
+	    } \
+	    else \
+	    { \
+		startx = Left; \
+		endx = Right; \
+		dir = 1; \
+		aa = l->MatrixA; \
+		cc = l->MatrixC; \
+	    } \
+\
+	    const int xx = startx + CLIP_10_BIT_SIGNED(HOffset - CentreX); \
+	    int AA = (l->MatrixA * xx) + BB; \
+	    int CC = (l->MatrixC * xx) + DD; \
+\
+	    { \
+			for (int x = startx; x != endx; x += dir, AA += aa, CC += cc, p++) \
+			{ \
+			    const int X = ((AA) >> 8); \
+			    const int Y = ((CC) >> 8); \
+			    if (!((X | Y) & ~0x3ff)) \
+			    { \
+				const uint8 b = mask & (*( ((uint8 *)(VRAM1 + (CMemory_VRAM[((Y & ~7) << 5) + ((X >> 2) & ~1)] << 7))) + ((Y & 7) << 4) + ((X & 7) << 1))); \
+				*p = (FUNC); \
+			    } else  { \
+			        const uint8 b = 0; \
+				*p = (FUNC); \
+			    } \
+			} \
+	    } \
+	} \
+    }
+static void DrawBGMode7Background16_gl_noclip (uint8 *Screen, int bg) {
+	unsigned short back_zero=IPPU.ScreenColors[0];
+	IPPU.ScreenColors[0]=0;
+       	RENDER_BACKGROUND_MODE7_GL_noclip (uint16, GFX.ScreenColors [b])
+	IPPU.ScreenColors[0]=back_zero;
+	videogl_screen_endY=GFX.EndY;
+}
+
+static __inline__ void DrawBGMode7Background16 (uint8 *Screen, int bg) {
+	if (videogl_hw_render) {
+/*
+		extern bool8 backRenderThisFrame;
+		if (!backRenderThisFrame) {
+			videogl_screen_endY=GFX.EndY;
+			videogl_used_screen=GFX.Z1=Mode7Depths[0];
+			return;
+		}
+*/
+		if (GFX.pCurrentClip->Count [bg]) {
+			DrawBGMode7Background16_gl(Screen,bg);
+			return;
+		} else {
+			switch(PPU.Mode7Repeat){
+				case 0: DrawBGMode7Background16_gl_noclip_repeat0(Screen,bg); return;
+				case 3: DrawBGMode7Background16_gl_noclip_repeat3(Screen,bg); return;
+				default: DrawBGMode7Background16_gl_noclip(Screen,bg); return;
+			}
+		}
+	}
+    DrawBGMode7Background16_nogl(Screen,bg);
+}
+
+#else
+
+static void DrawBGMode7Background16 (uint8 *Screen, int bg) {
+    RENDER_BACKGROUND_MODE7 (uint16, GFX.ScreenColors [b & GFX.Mode7Mask]);
 }
 #endif
 
-static void DrawBGMode7Background16 (uint8 *Screen, int bg)
-{
-    RENDER_BACKGROUND_MODE7 (uint16, GFX.ScreenColors [b & GFX.Mode7Mask]);
-}
-
+#if defined(USE_MODE7_TRANS) || !defined(USE_GL)
 static void DrawBGMode7Background16Add (uint8 *Screen, int bg)
 {
     RENDER_BACKGROUND_MODE7 (uint16, *(d + GFX.DepthDelta) ?
@@ -2644,6 +3373,7 @@ static void DrawBGMode7Background16Sub1_2 (uint8 *Screen, int bg)
 						       GFX.FixedColour)) :
 					 GFX.ScreenColors [b & GFX.Mode7Mask]);
 }
+#endif
 
 #define RENDER_BACKGROUND_MODE7_i(TYPE,FUNC,COLORFUNC) \
     CHECK_SOUND(); \
@@ -3109,6 +3839,7 @@ HIGH_BITS_SHIFTED_TWO_MASK = (( (FIRST_COLOR_MASK | SECOND_COLOR_MASK | THIRD_CO
 
 void RenderScreen (uint8 *Screen, bool8 sub, bool8 force_no_add, uint8 D)
 {
+//printf("RenderScreen(%i,%i,%i)\n",sub,force_no_add,D);
     bool8 BG0;
     bool8 BG1;
     bool8 BG2;
@@ -3123,7 +3854,7 @@ void RenderScreen (uint8 *Screen, bool8 sub, bool8 force_no_add, uint8 D)
 		BG0 = ON_MAIN (0);
 		BG1 = ON_MAIN (1);
 		BG2 = ON_MAIN (2);
-		BG3 = ON_MAIN (3);
+		BG3 = (ON_MAIN (3))&&(!PPU.BGMode);
 		OB  = ON_MAIN (4);
     }
     else
@@ -3132,55 +3863,97 @@ void RenderScreen (uint8 *Screen, bool8 sub, bool8 force_no_add, uint8 D)
 		BG0 = ON_SUB (0);
 		BG1 = ON_SUB (1);
 		BG2 = ON_SUB (2);
-		BG3 = ON_SUB (3);
+		BG3 = (ON_SUB (3))&&(!PPU.BGMode);
 		OB  = ON_SUB (4);
     }
 	
     sub |= force_no_add;
 	
+//printf("BGMode=%i: OB=%i, BG0=%i, BG1=%i, BG2=%i, BG3=%i\n",PPU.BGMode,OB,BG0,BG1,BG2,BG3 && !PPU.BGMode);
     if (PPU.BGMode <= 1)
     {
 		if (OB)
 		{
+#ifdef USE_GL
+			if (videogl_hw_render)
+				SelectTileRenderer (sub || !ON_SUB(4));
+			else
+#endif
 			SelectTileRenderer (sub || !SUB_OR_ADD(4));
 			DrawOBJS (!sub, D);
 		}
 		if (BG0)
 		{
+#ifdef USE_GL
+			if (videogl_hw_render && (BG1 || BG2 || BG3))
+				SelectTileRenderer (sub || !ON_SUB(0));
+			else
+#endif
 			SelectTileRenderer (sub || !SUB_OR_ADD(0));
 			DrawBackground (PPU.BGMode, 0, D + 10, D + 14);
 		}
 		if (BG1)
 		{
+#ifdef USE_GL
+			if (videogl_hw_render && (BG2 || BG3))
+				SelectTileRenderer (sub || !ON_SUB(1));
+			else
+#endif
 			SelectTileRenderer (sub || !SUB_OR_ADD(1));
 			DrawBackground (PPU.BGMode, 1, D + 9, D + 13);
 		}
 		if (BG2)
 		{
+#ifdef USE_GL
+			if (videogl_hw_render && BG3)
+				SelectTileRenderer (sub || !ON_SUB(2));
+			else
+#endif
 			SelectTileRenderer (sub || !SUB_OR_ADD(2));
 			DrawBackground (PPU.BGMode, 2, D + 3, 
 				PPU.BG3Priority ? D + 17 : D + 6);
 		}
-		if (BG3 && !PPU.BGMode)
+		if (BG3)
 		{
+#ifdef USE_GL
+			if (videogl_hw_render && (BG2 || BG1 || BG0) )
+				SelectTileRenderer (sub || !ON_SUB(3));
+			else
+#endif
 			SelectTileRenderer (sub || !SUB_OR_ADD(3));
 			DrawBackground (PPU.BGMode, 3, D + 2, D + 5);
 		}
     }
     else if (PPU.BGMode != 7)
     {
+	    BG1 = BG1 && (PPU.BGMode != 6);
 		if (OB)
 		{
+#ifdef USE_GL
+			if (videogl_hw_render)
+				SelectTileRenderer (sub || !ON_SUB(4));
+			else
+#endif
 			SelectTileRenderer (sub || !SUB_OR_ADD(4));
 			DrawOBJS (!sub, D);
 		}
 		if (BG0)
 		{
+#ifdef USE_GL
+			if (videogl_hw_render && BG1)
+				SelectTileRenderer (sub || !ON_SUB(0));
+			else
+#endif
 			SelectTileRenderer (sub || !SUB_OR_ADD(0));
 			DrawBackground (PPU.BGMode, 0, D + 5, D + 13);
 		}
-		if (PPU.BGMode != 6 && BG1)
+		if (BG1)
 		{
+#ifdef USE_GL
+			if (videogl_hw_render && (BG0 || OB))
+				SelectTileRenderer (sub || !ON_SUB(1));
+			else
+#endif
 			SelectTileRenderer (sub || !SUB_OR_ADD(1));
 			DrawBackground (PPU.BGMode, 1, D + 2, D + 9);
 		}
@@ -3189,6 +3962,11 @@ void RenderScreen (uint8 *Screen, bool8 sub, bool8 force_no_add, uint8 D)
     {
 		if (OB)
 		{
+#ifdef USE_GL
+			if (videogl_hw_render)
+				SelectTileRenderer (sub || !ON_SUB(4));
+			else
+#endif
 			SelectTileRenderer (sub || !SUB_OR_ADD(4));
 			DrawOBJS (!sub, D);
 		}
@@ -3212,6 +3990,7 @@ void RenderScreen (uint8 *Screen, bool8 sub, bool8 force_no_add, uint8 D)
 				Mode7Depths [1] = 5 + D;
 				bg = 0;
 			}
+#if defined(USE_MODE7_TRANS) || !defined(USE_GL)
 			if (sub || !SUB_OR_ADD(0))
 			{
 #ifndef USE_MODE7_INTERPOLATE
@@ -3261,27 +4040,35 @@ void RenderScreen (uint8 *Screen, bool8 sub, bool8 force_no_add, uint8 D)
 					}
 				}
 			}
+#else
+//			ZeroMemory((uint32 *) (GFX.Screen + getY(GFX.StartY)),SNES4ALL_SCREEN_PITCH*(GFX.EndY-GFX.StartY-1));
+			DrawBGMode7Background16 (GFX.Screen, bg);
+#endif
 		}
     }
 }
 
 
-#if defined(DISPLAY_FRAMERATE) && !defined(DEBUG_FRAMESKIP)
+#if ( defined(DISPLAY_FRAMERATE) && !defined(DEBUG_FRAMESKIP) ) || defined(USE_GL)
 
 #include "font.h"
 
-void DisplayChar (uint8 *Screen, uint8 c)
+#ifdef USE_GL
+static void DisplayChar (uint8 *Screen, uint8 c, int rws)
+#else
+static void DisplayChar (uint8 *Screen, uint8 c)
+#endif
 {
 	int line = (((c & 0x7f) - 32) >> 4) * font_height;
 	int offset = (((c & 0x7f) - 32) & 15) * font_width;
-	int h, w, rws;
+	int h, w;
 	uint16 *s = (uint16 *) Screen;
-#ifdef USE_OPENGL
-	rws = Settings.OpenGLEnable ? SNES_WIDTH : SNES4ALL_SCREEN_PITCH2;
+#ifdef USE_GL
+	for (h = 1; h < font_height; h++, line++, s += rws - font_width)
 #else
-	rws=SNES4ALL_SCREEN_PITCH2;
-#endif
+	int rws=SNES4ALL_SCREEN_PITCH2;
 	for (h = 0; h < font_height; h++, line++, s += rws - font_width)
+#endif
 	{
 		for (w = 0; w < font_width; w++, s++)
 		{
@@ -3297,26 +4084,55 @@ void DisplayChar (uint8 *Screen, uint8 c)
 
 static void S9xDisplayFrameRate ()
 {
+#ifdef USE_GL
+    uint8 *Screen=(uint8 *)videogl_fps_buffer;
+    videogl_fps_enabled=1;
+    memset(Screen,0,64*8*2);
+#else
     uint8 *Screen = GFX.Screen + 2 +
 		    getY(IPPU.RenderedScreenHeight - font_height - 1);
-    char string [10];
+#endif
+#if 1
+    char string [16];
     int len = 5;
+    extern unsigned snes4all_frames_per_second;
 
-    sprintf (string, "%02d/%02d", IPPU.DisplayedRenderedFrameCount,
-	     (int) CMemory_ROMFramesPerSecond);
+    if (Settings.SkipFrames == AUTO_FRAMERATE)
+ 	   sprintf (string, "%02d/%02d", IPPU.DisplayedRenderedFrameCount, (int) CMemory_ROMFramesPerSecond);
+    else
+	   sprintf (string, "%d%%", (snes4all_frames_per_second*100)/((int)CMemory_ROMFramesPerSecond));
+#else
+    char string [32];
+    int len;
+
+   sprintf (string, "%.2f",((double)videogl_tiles)/1000.0);
+#endif
+   len=strlen(string); if (len>8) len=8;
 
     int i;
     for (i = 0; i < len; i++)
     {
+#ifdef USE_GL
+	DisplayChar (Screen, string [i],64);
+#else
 	DisplayChar (Screen, string [i]);
+#endif
 	Screen += (font_width - 1) * sizeof (uint16);
     }
 }
 
 static void S9xDisplayString (const char *string)
 {
+#ifdef USE_GL
+    extern int videogl_info_enabled;
+    extern void *videogl_info_buffer;
+    uint8 *Screen=(uint8 *)videogl_info_buffer;
+    videogl_info_enabled=1;
+    memset(Screen,0,256*8*2);
+#else
     uint8 *Screen = GFX.Screen + 2 +
 		    getY(IPPU.RenderedScreenHeight - font_height * 5);
+#endif
     int len = strlen (string);
     int max_chars = SNES_WIDTH / (font_width - 1);
     int char_count = 0;
@@ -3326,15 +4142,25 @@ static void S9xDisplayString (const char *string)
     {
 	if (char_count >= max_chars || string [i] < 32)
 	{
-	    Screen -= (font_width - 1) * sizeof (uint16) * max_chars;
-	    Screen += getY(font_height);
-	    if (Screen >= GFX.Screen + getY(IPPU.RenderedScreenHeight))
+#ifdef USE_GL
 		break;
-	    char_count -= max_chars;
+#else
+		Screen -= (font_width - 1) * sizeof (uint16) * max_chars;
+		Screen += getY(font_height);
+		if (Screen >= GFX.Screen + getY(IPPU.RenderedScreenHeight))
+			break;
+		char_count -= max_chars;
+#endif
 	}
+#ifndef USE_GL
 	if (string [i] < 32)
 	    continue;
+#endif
+#ifdef USE_GL
+	DisplayChar (Screen, string [i], 256);
+#else
 	DisplayChar (Screen, string [i]);
+#endif
 	Screen += (font_width - 1) * sizeof (uint16);
     }
 }
@@ -3342,8 +4168,10 @@ static void S9xDisplayString (const char *string)
 
 void S9xUpdateScreen ()
 {
+//printf("S9xUpdateScreen %i %i\n",IPPU.PreviousLine,IPPU.CurrentLine);
 //printf("S9xUpdateScreen -> BGMode=%i, BG_Forced=%i, r212c=%i\n",PPU.BGMode,PPU_BG_Forced,GFX.r212c);
-    int32 x2 = 1;
+//fflush(stdout);
+    const int32 x2 = 1;
 	
     GFX.S = GFX.Screen;
     GFX.r2131 = CMemory_FillRAM [0x2131];
@@ -3384,7 +4212,7 @@ void S9xUpdateScreen ()
     uint32 starty = GFX.StartY;
     uint32 endy = GFX.EndY;
 	
-    uint32 black = BLACK | (BLACK << 16);
+    const uint32 black = BLACK | (BLACK << 16);
 
     if (Settings.Transparency)
     {
@@ -3409,7 +4237,11 @@ void S9xUpdateScreen ()
 			// Clear the z-buffer, marking areas 'covered' by the fixed
 			// colour as depth 1.
 			pClip = &IPPU.Clip [1];
-			
+
+#ifdef USE_GL	
+			if (/*PPU.BGMode == 7 ||*/ !videogl_hw_render)
+#endif
+			{
 			// Clear the z-buffer
 			if (pClip->Count [5])
 			{
@@ -3476,6 +4308,7 @@ void S9xUpdateScreen ()
 					}
 				}
 			}
+			}
 			if (ANYTHING_ON_SUB)
 			{
 				GFX.DB = GFX.SubZBuffer;
@@ -3484,6 +4317,15 @@ void S9xUpdateScreen ()
 			
 			if (IPPU.Clip [0].Count [5])
 			{
+#ifdef SHOW_TODO
+puts("TODO Trans0");
+#endif
+#ifdef USE_GL			
+				if (/*PPU.BGMode != 7 &&*/ videogl_hw_render) {
+					for(int i=starty/(240.0/VIDEO_GL_RASTER);i<VIDEO_GL_RASTER;i++)
+						videogl_background_color[i]=BLACK;
+				} else
+#endif
 				for (uint32 y = starty; y <= endy; y++)
 				{
 					register uint16 *p = (uint16 *) (GFX.Screen + getY(y));
@@ -3513,7 +4355,9 @@ void S9xUpdateScreen ()
 				uint32 Count;
 				
 				pClip = &IPPU.Clip [0];
+#ifndef USE_GL
 				for (uint32 y = starty; y <= endy; y++)
+#endif
 				{
 					if (!(Count = pClip->Count [5]))
 					{
@@ -3536,6 +4380,17 @@ void S9xUpdateScreen ()
 						{
 							if (GFX.r2131 & 0x40)
 							{
+#ifdef SHOW_TODO
+puts("TODO Trans1");
+#endif
+#ifdef USE_GL
+							   if (videogl_hw_render)  {
+								for(int i=starty/(240.0/VIDEO_GL_RASTER);i<VIDEO_GL_RASTER;i++)
+									videogl_background_color[i]=back;
+							   } else
+							       for (uint32 y = starty; y <= endy; y++) 
+#endif
+							      {
 								// Subtract, halving the result.
 								register uint16 *p = (uint16 *) (GFX.Screen + getY(y)) + Left;
 								register uint8 *d = GFX.ZBuffer + getY2(y);
@@ -3562,9 +4417,21 @@ void S9xUpdateScreen ()
 									p++;
 									s++;
 								}
+							   }
 							}
 							else
 							{
+#ifdef SHOW_TODO
+puts("TODO Trans2");
+#endif
+#ifdef USE_GL
+							   if (videogl_hw_render) {
+								for(int i=starty/(240.0/VIDEO_GL_RASTER);i<VIDEO_GL_RASTER;i++)
+									videogl_background_color[i]=back;
+							   } else
+							       for (uint32 y = starty; y <= endy; y++)
+#endif
+							      {
 								// Subtract
 								register uint16 *p = (uint16 *) (GFX.Screen + getY(y)) + Left;
 								register uint8 *s = GFX.SubZBuffer + getY2(y) + Left;
@@ -3573,8 +4440,21 @@ void S9xUpdateScreen ()
 								uint16 back_fixed = COLOR_SUB (back, GFX.FixedColour);
 								
 								d += Left;
-								while (d < e)
-								{
+
+#ifdef USE_GL
+								if (videogl_hw_render) {
+								   while (d < e) {
+									if (!(*d))
+									 *p = (uint16) back;
+									d++;
+									p++;
+									s++;
+								   }
+								}
+								else
+#endif
+								   while (d < e)
+								   {
 									if (!(*d))
 									{
 										if (*s)
@@ -3590,12 +4470,24 @@ void S9xUpdateScreen ()
 									d++;
 									p++;
 									s++;
-								}
+								   }
+							   }
 							}
 						}
 						else
 							if (GFX.r2131 & 0x40)
 							{
+#ifdef SHOW_TODO
+puts("TODO Trans3");
+#endif
+#ifdef USE_GL
+							   if (videogl_hw_render)  {
+								for(int i=starty/(240.0/VIDEO_GL_RASTER);i<VIDEO_GL_RASTER;i++)
+									videogl_background_color[i]=back;
+							   }else
+							       for (uint32 y = starty; y <= endy; y++)
+#endif
+							       {
 								register uint16 *p = (uint16 *) (GFX.Screen + getY(y)) + Left;
 								register uint8 *d = GFX.ZBuffer + getY2(y);
 								register uint8 *s = GFX.SubZBuffer + getY2(y) + Left;
@@ -3620,10 +4512,32 @@ void S9xUpdateScreen ()
 									p++;
 									s++;
 								}
+							   }
 							}
 							else
 								if (back)
 								{
+#ifdef SHOW_TODO
+printf("TODO Trans4: FixedColour(%i,%i,%i,%i) %.4X\n",Left,Right,starty,endy,GFX.FixedColour);
+#endif
+#ifdef USE_GL
+								    if (videogl_hw_render) {
+									videogl_used_addfix=1;
+									for(int i=starty/(240.0/VIDEO_GL_RASTER);i<VIDEO_GL_RASTER;i++)
+										videogl_addfix_color[i]=GFX.FixedColour;
+									videogl_addfix_x0=Left;
+									if (videogl_addfix_y0>starty)
+										videogl_addfix_y0=starty;
+									videogl_addfix_x1=Right;
+									if (videogl_addfix_y1<endy)
+										videogl_addfix_y1=endy;
+									if (!pClip->Count [5])
+									for(int i=starty/(240.0/VIDEO_GL_RASTER);i<VIDEO_GL_RASTER;i++)
+										videogl_background_color[i]=back;
+								    } else 
+									for (uint32 y = starty; y <= endy; y++)
+#endif
+								    {
 									register uint16 *p = (uint16 *) (GFX.Screen + getY(y)) + Left;
 									register uint8 *d = GFX.ZBuffer + getY2(y);
 									register uint8 *s = GFX.SubZBuffer + getY2(y) + Left;
@@ -3648,11 +4562,23 @@ void S9xUpdateScreen ()
 										p++;
 										s++;
 									}
+								    }
 								}
 								else
 								{
 									if (!pClip->Count [5])
 									{
+#ifdef SHOW_TODO
+puts("TODO Trans5");
+#endif
+#ifdef USE_GL
+							   		   if (videogl_hw_render) {
+										for(int i=starty/(240.0/VIDEO_GL_RASTER);i<VIDEO_GL_RASTER;i++)
+											videogl_background_color[i]=back;
+									   }else
+										for (uint32 y = starty; y <= endy; y++)
+#endif
+									     {
 										// The backdrop has not been cleared yet - so
 										// copy the sub-screen to the main screen
 										// or fill it with the back-drop colour if the
@@ -3680,6 +4606,7 @@ void S9xUpdateScreen ()
 											p++;
 											s++;
 										}
+									   }
 									}
 								}
 			}
@@ -3693,6 +4620,27 @@ void S9xUpdateScreen ()
 			
 			if (pClip->Count [5])
 			{
+#ifdef SHOW_TODO
+puts("TODO Trans6");
+#endif
+#ifdef USE_GL
+	   		   if (videogl_hw_render) {
+#if 0
+				videogl_used_sub=1;
+				videogl_sub_color=back;
+				videogl_sub_x0=pClip->Left[0][5];
+				if (videogl_sub_y0>starty)
+					videogl_sub_y0=starty;
+				videogl_sub_x1=pClip->Right[0][5];
+				if (videogl_sub_y1<endy)
+					videogl_sub_y1=endy;
+#else
+				for(int i=starty/(240.0/VIDEO_GL_RASTER);i<VIDEO_GL_RASTER;i++)
+					videogl_background_color[i]=back;
+#endif
+			   } else
+#endif
+			   {
 				for (uint32 y = starty; y <= endy; y++)
 				{
 					for (uint32 b = 0; b < pClip->Count [5]; b++)
@@ -3713,9 +4661,31 @@ void S9xUpdateScreen ()
 						}
 					}
 				}
+			   }
 			}
 			else
 			{
+#ifdef SHOW_TODO
+printf("TODO Trans7, starty=%i, endy=%i\n",starty,endy);
+#endif
+#ifdef USE_GL
+	   		   if (videogl_hw_render) {
+#if 0
+				videogl_used_sub=1;
+				videogl_sub_color=back;
+				videogl_sub_x0=0;
+				if (videogl_sub_y0>starty)
+					videogl_sub_y0=starty;
+				videogl_sub_x1=256;
+				if (videogl_sub_y1<endy)
+					videogl_sub_y1=endy;
+#else
+				for(int i=starty/(240.0/VIDEO_GL_RASTER);i<VIDEO_GL_RASTER;i++)
+					videogl_background_color[i]=back;
+#endif
+			   } else
+#endif
+			   {
 				for (uint32 y = starty; y <= endy; y++)
 				{
 					uint16 *p = (uint16 *) (GFX.Screen + getY(y));
@@ -3730,6 +4700,7 @@ void S9xUpdateScreen ()
 						p++;
 					}
 				}
+			   }
 			}
 		}
 	}
@@ -3743,7 +4714,13 @@ void S9xUpdateScreen ()
 		
 		if (PPU.ForcedBlanking)
 			back = black;
-		
+
+#ifdef USE_GL	
+		for(int i=starty/(240.0/VIDEO_GL_RASTER);i<VIDEO_GL_RASTER;i++)
+			videogl_background_color[i]=back;
+		if (/*PPU.BGMode == 7 ||*/ !videogl_hw_render)
+#endif
+		{
 		if (IPPU.Clip [0].Count[5])
 		{
 			for (uint32 y = starty; y <= endy; y++)
@@ -3778,8 +4755,12 @@ void S9xUpdateScreen ()
 					*p++ = back;
 			}
 		}
+		}
 		if (!PPU.ForcedBlanking)
 		{
+#ifdef USE_GL	
+			if (/*PPU.BGMode == 7 ||*/ !videogl_hw_render)
+#endif
 			for (uint32 y = starty; y <= endy; y++)
 			{
 				ZeroMemory_32 (GFX.ZBuffer + getY2(y),
@@ -3788,6 +4769,10 @@ void S9xUpdateScreen ()
 			GFX.DB = GFX.ZBuffer;
 			RenderScreen (GFX.Screen, FALSE, TRUE, SUB_SCREEN_DEPTH);
 		}
+#ifdef USE_GL
+		else if (PPU.BGMode == 7 && videogl_hw_render)
+			ZeroMemory((uint32 *) (GFX.Screen + getY(GFX.StartY)),SNES4ALL_SCREEN_PITCH*(GFX.EndY-GFX.StartY+1));
+#endif
 	}
     }
     else
@@ -3796,9 +4781,19 @@ void S9xUpdateScreen ()
 			register uint32 back = IPPU.ScreenColors [0] | (IPPU.ScreenColors [0] << 16);
 			if (PPU.ForcedBlanking)
 				back = black;
+#ifndef USE_GL
 			else
+#endif
 				SelectTileRenderer (TRUE);
-			
+
+#ifdef USE_GL
+			for(int i=starty/(240.0/VIDEO_GL_RASTER);i<VIDEO_GL_RASTER;i++)
+				videogl_background_color[i]=back;
+			if (/*PPU.BGMode == 7 &&*/ videogl_hw_render) {
+//				ZeroMemory((uint32 *) (GFX.Screen + getY(starty)),SNES4ALL_SCREEN_PITCH*(endy-starty));
+			} else
+//			if (PPU.BGMode == 7 || !videogl_hw_render)
+#endif
 			for (register uint32 y = starty; y <= endy; y++)
 			{
 				register uint32 *p = (uint32 *) (GFX.Screen + getY(y));
@@ -3809,6 +4804,9 @@ void S9xUpdateScreen ()
 		}
 		if (!PPU.ForcedBlanking)
 		{
+#ifdef USE_GL
+			if (/*PPU.BGMode == 7 ||*/ !videogl_hw_render)
+#endif
 			for (register uint32 y = starty; y <= endy; y++)
 			{
 				ZeroMemory_32 (GFX.ZBuffer + getY2(y),
@@ -3836,6 +4834,7 @@ void S9xUpdateScreen ()
 			bool8 BG2 = DISPLAY(4);
 			bool8 BG3 = DISPLAY(8);
 			bool8 OB  = DISPLAY(16);
+//printf("PPU_BG_Forced=%X, r212c=%X, r212d=%X, subadd=%X,BG=%i/%i/%i/%i, OB=%i, Mode=%i\n",PPU_BG_Forced,GFX.r212c,GFX.r212d,subadd,BG0,BG1,BG2,BG3,OB,PPU.BGMode);
 			
 			if (PPU.BGMode <= 1)
 			{
@@ -3919,7 +4918,11 @@ void S9xUpdateScreen ()
 #endif
 				}
 			}
-	}
+		}
+#ifdef USE_GL
+		else if (PPU.BGMode == 7 && videogl_hw_render)
+			ZeroMemory((uint32 *) (GFX.Screen + getY(GFX.StartY)),SNES4ALL_SCREEN_PITCH*(GFX.EndY-GFX.StartY+1));
+#endif
     }
     IPPU.PreviousLine = IPPU.CurrentLine;
 }
@@ -3983,4 +4986,5 @@ bool8 S9xSetRenderPixelFormat (int format)
     return (FALSE);
 }
 #endif
+
 

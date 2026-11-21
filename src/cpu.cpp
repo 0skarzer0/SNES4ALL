@@ -173,8 +173,15 @@ extern uint8 *C4Ram;
 END_EXTERN_C
 #endif
 
+#ifdef USE_MMU
+void set_mmu_mappings(void);
+#endif
+
 void S9xReset (void)
 {
+#ifdef USE_MMU
+   set_mmu_mappings();
+#endif
     if (Settings.SuperFX)
         S9xResetSuperFX ();
 
@@ -184,6 +191,12 @@ void S9xReset (void)
     ZeroMemory (CMemory_FillRAM, 0x8000);
     memset (CMemory_VRAM, 0x00, 0x10000);
     memset (CMemory_RAM, 0x55, 0x20000);
+#ifdef USE_MMU
+    dcache_flush_range((unsigned)&CMemory_FillRAM[0],0x8000);
+    dcache_flush_range((unsigned)&CMemory_VRAM[0],0x10000);
+    dcache_flush_range((unsigned)&CMemory_RAM[0],0x20000);
+    memcpy((void *)0x7e0000,(void *)&CMemory_RAM[0],0x20000);
+#endif
 
 	if(Settings.SPC7110)
 		S9xSpc7110Reset();
@@ -204,9 +217,15 @@ void S9xReset (void)
 		ResetOBC1();
 
 //    Settings.Paused = FALSE;
+#ifdef USE_MMU
+//   set_mmu_mappings();
+#endif
 }
 void S9xSoftReset (void)
 {
+#ifdef USE_MMU
+   set_mmu_mappings();
+#endif
     if (Settings.SuperFX)
         S9xResetSuperFX ();
 
@@ -216,6 +235,12 @@ void S9xSoftReset (void)
     ZeroMemory (CMemory_FillRAM, 0x8000);
     memset (CMemory_VRAM, 0x00, 0x10000);
  //   memset (CMemory_RAM, 0x55, 0x20000);
+#ifdef USE_MMU
+    dcache_flush_range((unsigned)&CMemory_FillRAM[0],0x8000);
+    dcache_flush_range((unsigned)&CMemory_VRAM[0],0x10000);
+    dcache_flush_range((unsigned)&CMemory_RAM[0],0x20000);
+    memcpy((void *)0x7e0000,(void *)&CMemory_RAM[0],0x20000);
+#endif
 
 	if(Settings.SPC7110)
 		S9xSpc7110Reset();
@@ -236,5 +261,8 @@ void S9xSoftReset (void)
     S9xInitCheatData ();
 
 //    Settings.Paused = FALSE;
+#ifdef USE_MMU
+//   set_mmu_mappings();
+#endif
 }
 

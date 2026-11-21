@@ -19,6 +19,7 @@
 #include "fade.h"
 
 #include "sdlinterface.h"
+#include "videogl.h"
 
 #define TRANS_COLOR 0xFEEEEE;
 
@@ -186,8 +187,14 @@ void text_flip(void)
 #endif
 		SDL_Delay(now-t);
 	t=now;
+#ifdef USE_GL
+//	texture_buffer=text_screen->pixels;
+SDL_BlitSurface(text_screen,NULL,screen,NULL);
+	videogl_flip(SDL_FALSE);
+#else
 	SDL_BlitSurface(text_screen,NULL,screen,NULL);
 	SDL_Flip(screen);
+#endif
 }
 
 
@@ -230,8 +237,14 @@ void init_text(int splash)
 #endif
 	if (!text_screen)
 	{
-//		text_screen=SDL_CreateRGBSurface(screen->flags,screen->w,screen->h,screen->format->BitsPerPixel,screen->format->Rmask,screen->format->Gmask,screen->format->Bmask,screen->format->Amask);
+#ifdef USE_GL
+//		text_screen=SDL_CreateRGBSurface(0,256,256,16,0xf800,0x07e0,0x001f,0);
+		void *buf_=calloc((256*256*2)+64,1);
+		void *buf=((void *)(((((unsigned)buf_)/32)+1)*32));
+		text_screen=SDL_CreateRGBSurfaceFrom(buf,256,256,16,SNES4ALL_SCREEN_PITCH,0xf800,0x07e0,0x001f,0);
+#else
 		text_screen=SDL_DisplayFormat(screen);
+#endif
 		if (text_screen==NULL)
 		{
 			puts("No se pudo crear el SDL_Surface text_screen");
@@ -443,7 +456,7 @@ void write_text_pos_inv(int x, int y, char * str)
 	write_text_pos_common(x,y,str,text_image_inv);
 }
 
-static void write_text_common(int x, int y, char * str, SDL_Surface *txt_scr)
+static void write_text_common(int x, int y, int offs, char * str, SDL_Surface *txt_scr)
 {
   int i, c;
   SDL_Rect src, dest;
@@ -489,8 +502,8 @@ static void write_text_common(int x, int y, char * str, SDL_Surface *txt_scr)
 	  src.w = 8;
 	  src.h = 8;
 	  
-	  dest.x = (x + i) * 8;
-	  dest.y = y * 8; //10;
+	  dest.x = offs +((x + i) * 8);
+	  dest.y = offs + (y * 8); //10;
 	  dest.w = 8;
 	  dest.h = 8;
 	  
@@ -502,14 +515,43 @@ static void write_text_common(int x, int y, char * str, SDL_Surface *txt_scr)
 
 void write_text(int x, int y, char * str)
 {
-	write_text_common(x,y,str,text_image);
+	write_text_common(x,y,0,str,text_image);
 }
 
 /* Write text, inverted: */
 
 void write_text_inv(int x, int y, char *str)
 {
-	write_text_common(x, y, str,text_image_inv);
+	write_text_common(x, y, 0, str,text_image_inv);
+}
+
+void write_text_offs(int offs,int x, int y, char *str)
+{
+	write_text_common(x, y, offs, str,text_image_inv);
+}
+
+static void draw_box(SDL_Rect *src) {
+  SDL_Rect dest;
+  dest.x = src->x;
+  dest.y = src->y;
+  dest.w = src->w;
+  dest.h = 1;
+  SDL_FillRect(text_screen, &dest, menu_inv_color);
+  dest.x = src->x;
+  dest.y = src->y+src->h-1;
+  dest.w = src->w;
+  dest.h = 1;
+  SDL_FillRect(text_screen, &dest, menu_inv_color);
+  dest.x = src->x;
+  dest.y = src->y;
+  dest.w = 1;
+  dest.h = src->h;
+  SDL_FillRect(text_screen, &dest, menu_inv_color);
+  dest.x = src->x+src->w-1;
+  dest.y = src->y;
+  dest.w = 1;
+  dest.h = src->h;
+  SDL_FillRect(text_screen, &dest, menu_inv_color);
 }
 
 void write_text_sel(int x, int y, char * str)
@@ -524,12 +566,44 @@ void write_text_sel(int x, int y, char * str)
   dest.w = (strlen(str) * 8) + 4;
   dest.h = 12;
 
+#if 0
   SDL_FillRect(text_screen, &dest, menu_inv_color);
+#else
+  draw_box(&dest);
+#endif
  
 #ifndef NORES256
   x+=4;
 #endif
-  write_text_common(x, y, str,text_image_inv);
+  write_text_common(x, y, 0, str,text_image_inv);
+}
+
+void write_text_sel3(int x, int y, char * str)
+{
+  SDL_Rect dest;
+  
+#ifndef NORES256
+  x-=4;
+#endif
+  dest.x = (x * 8) -2 ;
+  dest.y = (y * 8) /*10*/ - 2;
+  dest.w = (strlen(str) * 8) + 4;
+  dest.h = 12;
+
+#if 0
+  SDL_FillRect(text_screen, &dest, menu_inv_color);
+#else
+  draw_box(&dest);
+#endif
+ 
+#ifndef NORES256
+  x+=4;
+#endif
+#if 0
+  write_text_common(x, y, 0, str,text_image_inv);
+#else
+  write_text_common(x, y, 0,  str,text_image);
+#endif
 }
 
 
@@ -545,12 +619,20 @@ void write_text_sel2(int x, int y, char * str)
   dest.w = (strlen(str) * 8);
   dest.h = 12;
 
+#if 0
   SDL_FillRect(text_screen, &dest, menu_inv_color);
+#else
+  draw_box(&dest);
+#endif
  
 #ifndef NORES256
   x+=4;
 #endif
+#if 0
   write_text_common(x, y, str,text_image_inv);
+#else
+  write_text_common(x, y, 0, str,text_image);
+#endif
 }
 
 
@@ -704,6 +786,10 @@ void text_draw_window(int x, int y, int w, int h, char *title)
 	SDL_UnlockSurface(text_screen);
 #endif
 
+#ifdef USE_GL
+	write_text(r8x + ((r8w-strlen(title)) / 2), r8y - 1, title);
+	write_text_offs(1,r8x + ((r8w-strlen(title)) / 2), r8y - 1, title);
+#else
 #ifdef NORES256
 	write_text_inv(r8x, r8y - 1, "o -");
 #else
@@ -711,6 +797,7 @@ void text_draw_window(int x, int y, int w, int h, char *title)
 #endif
 	write_text_inv(r8x + r8w - 6, r8y - 1, "-- =ox");
 	write_text_inv(r8x + ((r8w-strlen(title)) / 2), r8y - 1, title);
+#endif
 
 }
 

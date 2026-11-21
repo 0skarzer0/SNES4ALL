@@ -97,8 +97,16 @@
 #include <unistd.h>
 #endif
 
+#ifdef USE_MMU
+void set_mmu_mappings();
+static unsigned set_mmus=0;
+#endif
+
 void S9xSetSDD1MemoryMap (uint32 bank, uint32 value)
 {
+#ifdef USE_MMU
+    int changed=0;
+#endif
     bank = 0xc00 + bank * 0x100;
     value = value * 1024 * 1024;
 
@@ -110,12 +118,29 @@ void S9xSetSDD1MemoryMap (uint32 bank, uint32 value)
 	int i;
 
 	for (i = c; i < c + 16; i++)
-	    CMemory_Map [i + bank] = block;
+#ifdef USE_MMU
+		if (CMemory_Map [i + bank] != block) {
+		    changed=1;
+#endif
+		    CMemory_Map [i + bank] = block;
+#ifdef USE_MMU
+		}
+#endif
     }
+#ifdef USE_MMU
+    if (changed) {
+ 	   set_mmus++;
+ 	   if (set_mmus<6)
+ 	   	set_mmu_mappings();
+    }
+#endif
 }
 
 void S9xResetSDD1 ()
 {
+#ifdef USE_MMU
+	set_mmus=0;
+#endif
     memset (&CMemory_FillRAM [0x4800], 0, 4);
     for (int i = 0; i < 4; i++)
     {
@@ -178,4 +203,3 @@ void S9xSDD1LoadLoggedData ()
 	fclose (fs);
     }
 }
-

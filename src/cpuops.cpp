@@ -128,7 +128,8 @@ END_EXTERN_C
 #include "cpumacro.h"
 #include "apu.h"
 
-#if defined(ZSNES_FX) || !defined(USE_OPC_ASM)
+//#if defined(ZSNES_FX) || !defined(USE_OPC_ASM)
+#if 1
 
 /* ADC *************************************************************************************** */
 static void Op69M1 (void)
@@ -3313,7 +3314,6 @@ static void OpF8 (void)
 #ifndef SA1_OPCODES
     CPU.Cycles += ONE_CYCLE;
 #endif
-    missing.decimal_mode = 1;
 }
 
 /* SEI */
@@ -3522,7 +3522,6 @@ static void OpFB (void)
     {
 	SetFlags (MemoryFlag | IndexFlag);
 	Registers.SH = 1;
-	missing.emulate6502 = 1;
     }
     if (CheckIndex ())
     {
@@ -3536,11 +3535,6 @@ static void OpFB (void)
 /* BRK *************************************************************************************** */
 static void Op00 (void)
 {
-#ifdef DEBUGGER
-    if (CPU.Flags & TRACE_FLAG)
-	S9xTraceMessage ("*** BRK");
-#endif
-
 #ifndef SA1_OPCODES
     CPU.BRKTriggered = TRUE;
 #endif
@@ -3592,10 +3586,6 @@ static void Op82 (void)
 /* IRQ *************************************************************************************** */
 void S9xOpcode_IRQ (void)
 {
-#ifdef DEBUGGER
-    if (CPU.Flags & TRACE_FLAG)
-	S9xTraceMessage ("*** IRQ");
-#endif
     if (!CheckEmulation())
     {
 	PushB (Registers.PB);
@@ -3654,10 +3644,6 @@ void S9xOpcode_IRQ (void)
 /* NMI *************************************************************************************** */
 void S9xOpcode_NMI (void)
 {
-#ifdef DEBUGGER
-    if (CPU.Flags & TRACE_FLAG)
-	S9xTraceMessage ("*** NMI");
-#endif
     if (!CheckEmulation())
     {
 	PushB (Registers.PB);
@@ -3715,10 +3701,6 @@ void S9xOpcode_NMI (void)
 /* COP *************************************************************************************** */
 static void Op02 (void)
 {
-#ifdef DEBUGGER
-    if (CPU.Flags & TRACE_FLAG)
-	S9xTraceMessage ("*** COP");
-#endif	
     if (!CheckEmulation())
     {
 	PushB (Registers.PB);
@@ -3992,7 +3974,6 @@ static void OpC2 (void)
     if (CheckEmulation())
     {
 	SetFlags (MemoryFlag | IndexFlag);
-	missing.emulate6502 = 1;
     }
     if (CheckIndex ())
     {
@@ -4018,7 +3999,6 @@ static void OpE2 (void)
     if (CheckEmulation())
     {
 	SetFlags (MemoryFlag | IndexFlag);
-	missing.emulate6502 = 1;
     }
     if (CheckIndex ())
     {
@@ -4057,7 +4037,6 @@ static void Op40 (void)
     else
     {
 	SetFlags (MemoryFlag | IndexFlag);
-	missing.emulate6502 = 1;
     }
     S9xSetPCBase (ICPU.ShiftedPB + Registers.PC);
     
@@ -4100,19 +4079,19 @@ static void OpCB (void)
     }
 #endif
 #else // SA1_OPCODES
-#if 0
-
-
+#if USE_NO_WAIT_WHEN_IRQ
     if (CPU.IRQActive)
     {
-#ifndef SA1_OPCODES
+#if !defined(SA1_OPCODES) || defined(VAR_CYCLES)
 	CPU.Cycles += TWO_CYCLES;
 #endif
     }
     else
 #endif
     {
+#ifndef USE_OLD_DSP1
 	if (DSP1.version == 3) return;
+#endif
 
 	CPU.WaitingForInterrupt = TRUE;
 	CPU.PC--;
@@ -4163,14 +4142,14 @@ static void Op42 (void)
 /*****************************************************************************/
 struct SOpcodes S9xOpcodesM1X1[256] =
 {
-    {Op00},	 {Op01M1},    {Op02},      {Op03M1},    {Op04M1},
-    {Op05M1},    {Op06M1},    {Op07M1},    {Op08},      {Op09M1},
-    {Op0AM1},    {Op0B},      {Op0CM1},    {Op0DM1},    {Op0EM1},
-    {Op0FM1},    {Op10},      {Op11M1},    {Op12M1},    {Op13M1},
-    {Op14M1},    {Op15M1},    {Op16M1},    {Op17M1},    {Op18},
-    {Op19M1},    {Op1AM1},    {Op1B},      {Op1CM1},    {Op1DM1},
-    {Op1EM1},    {Op1FM1},    {Op20},      {Op21M1},    {Op22},
-    {Op23M1},    {Op24M1},    {Op25M1},    {Op26M1},    {Op27M1},
+    {Op00},	 {Op01M1},    {Op02},      {Op03M1},    {Op04M1}, // 0 - 4
+    {Op05M1},    {Op06M1},    {Op07M1},    {Op08},      {Op09M1}, // 5 - 9
+    {Op0AM1},    {Op0B},      {Op0CM1},    {Op0DM1},    {Op0EM1}, // 10 - 14
+    {Op0FM1},    {Op10},      {Op11M1},    {Op12M1},    {Op13M1}, // 15 - 19
+    {Op14M1},    {Op15M1},    {Op16M1},    {Op17M1},    {Op18},   // 20 - 24
+    {Op19M1},    {Op1AM1},    {Op1B},      {Op1CM1},    {Op1DM1}, // 25 - 29
+    {Op1EM1},    {Op1FM1},    {Op20},      {Op21M1},    {Op22},   // 30 - 34
+    {Op23M1},    {Op24M1},    {Op25M1},    {Op26M1},    {Op27M1}, // 35 - 39
     {Op28},      {Op29M1},    {Op2AM1},    {Op2B},      {Op2CM1},
     {Op2DM1},    {Op2EM1},    {Op2FM1},    {Op30},      {Op31M1},
     {Op32M1},    {Op33M1},    {Op34M1},    {Op35M1},    {Op36M1},
@@ -4333,36 +4312,36 @@ struct SOpcodes S9xOpcodesM0X0[256] =
 
 struct SOpcodes S9xOpcodesM0X1[256] =
 {
-    {Op00},	 {Op01M0},    {Op02},      {Op03M0},    {Op04M0},
-    {Op05M0},    {Op06M0},    {Op07M0},    {Op08},      {Op09M0},
-    {Op0AM0},    {Op0B},      {Op0CM0},    {Op0DM0},    {Op0EM0},
-    {Op0FM0},    {Op10},      {Op11M0},    {Op12M0},    {Op13M0},
-    {Op14M0},    {Op15M0},    {Op16M0},    {Op17M0},    {Op18},
-    {Op19M0},    {Op1AM0},    {Op1B},      {Op1CM0},    {Op1DM0},
-    {Op1EM0},    {Op1FM0},    {Op20},      {Op21M0},    {Op22},
-    {Op23M0},    {Op24M0},    {Op25M0},    {Op26M0},    {Op27M0},
-    {Op28},      {Op29M0},    {Op2AM0},    {Op2B},      {Op2CM0},
-    {Op2DM0},    {Op2EM0},    {Op2FM0},    {Op30},      {Op31M0},
-    {Op32M0},    {Op33M0},    {Op34M0},    {Op35M0},    {Op36M0},
-    {Op37M0},    {Op38},      {Op39M0},    {Op3AM0},    {Op3B},
-    {Op3CM0},    {Op3DM0},    {Op3EM0},    {Op3FM0},    {Op40},
-    {Op41M0},    {Op42},      {Op43M0},    {Op44X1},    {Op45M0},
-    {Op46M0},    {Op47M0},    {Op48M0},    {Op49M0},    {Op4AM0},
-    {Op4B},      {Op4C},      {Op4DM0},    {Op4EM0},    {Op4FM0},
-    {Op50},      {Op51M0},    {Op52M0},    {Op53M0},    {Op54X1},
-    {Op55M0},    {Op56M0},    {Op57M0},    {Op58},      {Op59M0},
-    {Op5AX1},    {Op5B},      {Op5C},      {Op5DM0},    {Op5EM0},
-    {Op5FM0},    {Op60},      {Op61M0},    {Op62},      {Op63M0},
-    {Op64M0},    {Op65M0},    {Op66M0},    {Op67M0},    {Op68M0},
-    {Op69M0},    {Op6AM0},    {Op6B},      {Op6C},      {Op6DM0},
-    {Op6EM0},    {Op6FM0},    {Op70},      {Op71M0},    {Op72M0},
-    {Op73M0},    {Op74M0},    {Op75M0},    {Op76M0},    {Op77M0},
-    {Op78},      {Op79M0},    {Op7AX1},    {Op7B},      {Op7C},
-    {Op7DM0},    {Op7EM0},    {Op7FM0},    {Op80},      {Op81M0},
-    {Op82},      {Op83M0},    {Op84X1},    {Op85M0},    {Op86X1},
-    {Op87M0},    {Op88X1},    {Op89M0},    {Op8AM0},    {Op8B},
-    {Op8CX1},    {Op8DM0},    {Op8EX1},    {Op8FM0},    {Op90},
-    {Op91M0},    {Op92M0},    {Op93M0},    {Op94X1},    {Op95M0},
+    {Op00},	 {Op01M0},    {Op02},      {Op03M0},    {Op04M0}, // 0 - 4
+    {Op05M0},    {Op06M0},    {Op07M0},    {Op08},      {Op09M0}, // 5 - 9
+    {Op0AM0},    {Op0B},      {Op0CM0},    {Op0DM0},    {Op0EM0}, // 10
+    {Op0FM0},    {Op10},      {Op11M0},    {Op12M0},    {Op13M0}, // 15
+    {Op14M0},    {Op15M0},    {Op16M0},    {Op17M0},    {Op18},   // 20
+    {Op19M0},    {Op1AM0},    {Op1B},      {Op1CM0},    {Op1DM0}, // 25
+    {Op1EM0},    {Op1FM0},    {Op20},      {Op21M0},    {Op22},   // 30
+    {Op23M0},    {Op24M0},    {Op25M0},    {Op26M0},    {Op27M0}, // 35
+    {Op28},      {Op29M0},    {Op2AM0},    {Op2B},      {Op2CM0}, // 40
+    {Op2DM0},    {Op2EM0},    {Op2FM0},    {Op30},      {Op31M0}, // 45
+    {Op32M0},    {Op33M0},    {Op34M0},    {Op35M0},    {Op36M0}, // 50
+    {Op37M0},    {Op38},      {Op39M0},    {Op3AM0},    {Op3B},   // 55
+    {Op3CM0},    {Op3DM0},    {Op3EM0},    {Op3FM0},    {Op40},   // 60
+    {Op41M0},    {Op42},      {Op43M0},    {Op44X1},    {Op45M0}, // 65
+    {Op46M0},    {Op47M0},    {Op48M0},    {Op49M0},    {Op4AM0}, // 70
+    {Op4B},      {Op4C},      {Op4DM0},    {Op4EM0},    {Op4FM0}, // 75
+    {Op50},      {Op51M0},    {Op52M0},    {Op53M0},    {Op54X1}, // 80
+    {Op55M0},    {Op56M0},    {Op57M0},    {Op58},      {Op59M0}, // 85
+    {Op5AX1},    {Op5B},      {Op5C},      {Op5DM0},    {Op5EM0}, // 90
+    {Op5FM0},    {Op60},      {Op61M0},    {Op62},      {Op63M0}, // 95
+    {Op64M0},    {Op65M0},    {Op66M0},    {Op67M0},    {Op68M0}, // 100
+    {Op69M0},    {Op6AM0},    {Op6B},      {Op6C},      {Op6DM0}, // 105
+    {Op6EM0},    {Op6FM0},    {Op70},      {Op71M0},    {Op72M0}, // 110
+    {Op73M0},    {Op74M0},    {Op75M0},    {Op76M0},    {Op77M0}, // 115
+    {Op78},      {Op79M0},    {Op7AX1},    {Op7B},      {Op7C},   // 120
+    {Op7DM0},    {Op7EM0},    {Op7FM0},    {Op80},      {Op81M0}, // 125
+    {Op82},      {Op83M0},    {Op84X1},    {Op85M0},    {Op86X1}, // 130
+    {Op87M0},    {Op88X1},    {Op89M0},    {Op8AM0},    {Op8B},   // 135
+    {Op8CX1},    {Op8DM0},    {Op8EX1},    {Op8FM0},    {Op90},   // 140
+    {Op91M0},    {Op92M0},    {Op93M0},    {Op94X1},    {Op95M0}, // 145
     {Op96X1},    {Op97M0},    {Op98M0},    {Op99M0},    {Op9A},
     {Op9BX1},    {Op9CM0},    {Op9DM0},    {Op9EM0},    {Op9FM0},
     {OpA0X1},    {OpA1M0},    {OpA2X1},    {OpA3M0},    {OpA4X1},

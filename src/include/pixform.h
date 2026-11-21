@@ -263,6 +263,50 @@ extern uint32 HIGH_BITS_SHIFTED_TWO_MASK;
 #define THIRD_COLOR_MASK_RGB5551   0x003e
 #define ALPHA_BITS_MASK_RGB5551    0x0001
 
+/* RGB1555 format */
+#ifndef DREAMCAST
+#define BUILD_PIXEL_RGB1555(R,G,B) (((int) (B) << 10) | ((int) (G) << 5) | (int) ((R) ) | 0x8000)
+#define BUILD_PIXEL2_RGB1555(R,G,B) (((int) (B) << 10) | ((int) (G) << 5) | (int) ((R) ) | 0x8000)
+#define DECOMPOSE_PIXEL_RGB1555(PIX,R,G,B) {(B) = ((PIX) >> 10) & 0x1f; (G) = ((PIX) >> 5) & 0x1f; (R) = ((PIX) ) & 0x1f; }
+#define SPARE_RGB_BIT_MASK_RGB1555 (1 << 15)
+
+#define MAX_BLUE_RGB1555   31
+#define MAX_GREEN_RGB1555  31
+#define MAX_RED_RGB1555	   31
+#define BLUE_LOW_BIT_MASK_RGB1555   0x0400
+#define GREEN_LOW_BIT_MASK_RGB1555 0x0020
+#define RED_LOW_BIT_MASK_RGB1555  0x0001
+#define BLUE_HI_BIT_MASK_RGB1555    0x4000
+#define GREEN_HI_BIT_MASK_RGB1555  0x0200
+#define RED_HI_BIT_MASK_RGB1555   0x0010
+#define THIRD_COLOR_MASK_RGB1555   0x7c00
+#define SECOND_COLOR_MASK_RGB1555  0x03e0
+#define FIRST_COLOR_MASK_RGB1555   0x001f
+#define ALPHA_BITS_MASK_RGB1555    0x8000
+
+#else
+#define BUILD_PIXEL_RGB1555(R,G,B) (((int) (R) << 10) | ((int) (G) << 5) | (int) ((B) ) | 0x8000)
+#define BUILD_PIXEL2_RGB1555(R,G,B) (((int) (R) << 10) | ((int) (G) << 5) | (int) ((B) ) | 0x8000)
+#define DECOMPOSE_PIXEL_RGB1555(PIX,R,G,B) {(R) = ((PIX) >> 10) & 0x1f; (B) = ((PIX) >> 5) & 0x1f; (R) = ((PIX) ) & 0x1f; }
+#define SPARE_RGB_BIT_MASK_RGB1555 (1 << 15)
+
+#define MAX_BLUE_RGB1555   31
+#define MAX_GREEN_RGB1555  31
+#define MAX_RED_RGB1555	   31
+#define RED_LOW_BIT_MASK_RGB1555   0x0400
+#define GREEN_LOW_BIT_MASK_RGB1555 0x0020
+#define BLUE_LOW_BIT_MASK_RGB1555  0x0001
+#define RED_HI_BIT_MASK_RGB1555    0x4000
+#define GREEN_HI_BIT_MASK_RGB1555  0x0200
+#define BLUE_HI_BIT_MASK_RGB1555   0x0010
+#define FIRST_COLOR_MASK_RGB1555   0x7c00
+#define SECOND_COLOR_MASK_RGB1555  0x03e0
+#define THIRD_COLOR_MASK_RGB1555   0x001f
+#define ALPHA_BITS_MASK_RGB1555    0x8000
+
+#endif
+
+
 #ifndef GFX_MULTI_FORMAT
 #define CONCAT(X,Y) X##Y
 

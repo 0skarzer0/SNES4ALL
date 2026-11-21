@@ -87,6 +87,10 @@
   Nintendo Co., Limited and its subsidiary companies.
 *******************************************************************************/
 
+#if defined(USE_MMU_DIRECT_INDEX) && !defined(USE_MMU)
+#undef USE_MMU_DIRECT_INDEX
+#endif
+
 .macro GetCarry
 	mov FLAGS,r1
 	shlr r1
@@ -217,6 +221,9 @@
 	add r0,r4
 	mov.l S9xGetWord,r3
 	extu.w r4,r4
+#ifdef USE_MMU_DIRECT_INDEX
+	add #-16,r3
+#endif
 	mov.l ICPU,r1
 	mov.l ShiftedPB,r2
 	jsr @r3
@@ -238,10 +245,28 @@
 	extu.b r2,r2
 	mov.b @PC+,r4
 	shll8 r4
+#ifndef USE_MMU_DIRECT_INDEX
 	mov.l S9xGetWord,r3
+#endif
 	or r2,r4
+#ifndef USE_MMU_DIRECT_INDEX
 	jsr @r3
+#endif
 	extu.w r4,r4
+#ifdef USE_MMU_DIRECT_INDEX
+	mov.b @r4+,r0
+	add #24,CYCLES
+	extu.b r0, r3
+	mov.b @r4+,r0
+	shll8 r0
+	or r3,r0
+	extu.w r0,r3
+	mov.b @r4,r0
+	extu.b r0,r0
+	shll16 r0
+	or r0,r3
+	mov r3,r4
+#else
 	mov.l r0,@-r15
 	mov.l S9xGetByte,r3
 	add #2,r4
@@ -250,6 +275,7 @@
 	mov.l @r15+,r4
 	shll16 r0
 	or r0,r4
+#endif
 .endm
 
 .macro AbsoluteIndirect8 K
@@ -266,6 +292,9 @@
 	mov.b @PC+,r4
 	shll8 r4
 	mov.l S9xGetWord,r3
+#ifdef USE_MMU_DIRECT_INDEX
+	add #-16,r3
+#endif
 	or r2,r4
 	jsr @r3
 	extu.w r4,r4
@@ -409,6 +438,9 @@
 	mov.w DD,r0
 	add r0,r4
 	mov.l S9xGetWord,r3
+#ifdef USE_MMU_DIRECT_INDEX
+	add #-16,r3
+#endif
 	jsr @r3
 	extu.w r4,r4
 	mov.l ICPU,r3
@@ -455,9 +487,12 @@
 	extu.b r4,r4
 	mov.w DD,r0
 	add r0,r4
+#ifndef USE_MMU_DIRECT_INDEX
 	mov.l S9xGetWord,r3
 	jsr @r3
+#endif
 	extu.w r4,r4
+#ifndef USE_MMU_DIRECT_INDEX
 	mov.l r0,@-r15
 	mov.l S9xGetByte,r3
 	jsr @r3
@@ -465,6 +500,20 @@
 	mov.l @r15+,r4
 	shll16 r0
 	or r0,r4
+#else
+	mov.b @r4+,r0
+	add #24,CYCLES
+	extu.b r0, r3
+	mov.b @r4+,r0
+	shll8 r0
+	or r3,r0
+	extu.w r0,r3
+	mov.b @r4,r0
+	extu.b r0,r0
+	shll16 r0
+	or r0,r3
+	mov r3,r4
+#endif
 	mov.w YY,r0
 	extu.w r0,r0
 #ifndef ASMADDR_NOP_PATCH
@@ -510,6 +559,9 @@
 	mov.w XX,r0
 	add r0,r4
 	mov.l S9xGetWord,r3
+#ifdef USE_MMU_DIRECT_INDEX
+	add #-16,r3
+#endif
 	jsr @r3
 	extu.w r4,r4
 	mov.l ICPU,r3
@@ -762,6 +814,9 @@
 	mov.w DD,r0
 	add r0,r4
 	mov.l S9xGetWord,r3
+#ifdef USE_MMU_DIRECT_INDEX
+	add #-16,r3
+#endif
 	jsr @r3
 	extu.w r4,r4
 	mov.l ICPU,r3
@@ -805,15 +860,31 @@
 	extu.b r4,r4
 	mov.w DD,r0
 	add r0,r4
+#ifndef USE_MMU_DIRECT_INDEX
 	mov.l S9xGetWord,r3
 	jsr @r3
+#endif
 	extu.w r4,r4
+#ifndef USE_MMU_DIRECT_INDEX
 	mov.l r0,@-r15
 	mov.l S9xGetByte,r3
 	jsr @r3
 	add #2,r4
 	mov.l @r15+,r4
 	shll16 r0
+#else
+	mov.b @r4+,r0
+	add #24,CYCLES
+	extu.b r0, r3
+	mov.b @r4+,r0
+	shll8 r0
+	or r3,r0
+	extu.w r0,r3
+	mov.b @r4,r0
+	extu.b r0,r0
+	shll16 r0
+	mov r3,r4
+#endif
 #ifndef ASMADDR_NOP_PATCH
 	or r0,r4
 #endif
@@ -882,6 +953,9 @@
 	extu.b r4,r4
 	mov.w SS,r0
 	mov.l S9xGetWord,r3
+#ifdef USE_MMU_DIRECT_INDEX
+	add #-16,r3
+#endif
 	add r0,r4
 	jsr @r3
 	extu.w r4,r4
@@ -1007,6 +1081,9 @@
 	extu.w r0,r4
 	mov.l S9xSetByte,r3
 	add #-1,r0
+#ifdef USE_MMU_DIRECT_INDEX
+	add #-12,r3
+#endif
 	mov.w r0,SS
 	mov r1,r0
 	Xlink
@@ -1019,6 +1096,9 @@
 	extu.w r0,r4
 	mov.l S9xSetWord,r3
 	add #-1,r0
+#ifdef USE_MMU_DIRECT_INDEX
+	add #-16,r3
+#endif
 	mov.w r0,SS
 	mov r1,r0
 	Xlink
@@ -1030,6 +1110,9 @@
 	extu.w r0,r4
 	mov.l S9xSetByte,r3
 	add #-1,r0
+#ifdef USE_MMU_DIRECT_INDEX
+	add #-12,r3
+#endif
 	mov.w r0,SS
 	jsr @r3
 	mov r1,r0
@@ -1042,6 +1125,9 @@
 	extu.w r0,r4
 	mov.l S9xSetWord,r3
 	add #-1,r0
+#ifdef USE_MMU_DIRECT_INDEX
+	add #-16,r3
+#endif
 	mov.w r0,SS
 	jsr @r3
 	mov r1,r0
@@ -1051,6 +1137,9 @@
 	mov.w SS,r0
 	add #1,r0
 	mov.l S9xGetByte,r3
+#ifdef USE_MMU_DIRECT_INDEX
+	add #-8,r3
+#endif
 	extu.w r0,r4
 	jsr @r3
 	mov.w r0,SS
@@ -1061,6 +1150,9 @@
 	add #1,r0
 	mov.l S9xGetWord,r3
 	extu.w r0,r4
+#ifdef USE_MMU_DIRECT_INDEX
+	add #-16,r3
+#endif
 	add #1,r0
 	jsr @r3
 	mov.w r0,SS

@@ -105,6 +105,10 @@
 
 extern "C" void S9xSaveStateProcess();
 
+#ifdef DEBUG_CPU
+extern int cpu_debugging;
+#endif
+
 #ifndef USE_OPC_ASM_MIXTO
 void S9xMainLoop (void)
 {
@@ -118,7 +122,13 @@ void S9xMainLoop (void)
       }
 #endif
 
+#ifdef USE_ALWAYS_APU_SYNC
 	APU_EXECUTE ();
+#else
+	if (snes4all_sound_enable>1) {
+		APU_EXECUTE ();
+	}
+#endif
 	if (CPU.Flags)
 	{
 	    if (CPU.Flags & NMI_FLAG)
@@ -135,24 +145,6 @@ void S9xMainLoop (void)
 		}
 	    }
 
-#ifdef DEBUGGER
-	    if ((CPU.Flags & BREAK_FLAG) &&
-		!(CPU.Flags & SINGLE_STEP_FLAG))
-	    {
-		for (int Break = 0; Break != 6; Break++)
-		{
-		    if (S9xBreakpoint[Break].Enabled &&
-			S9xBreakpoint[Break].Bank == Registers.PB &&
-			S9xBreakpoint[Break].Address == CPU.PC - CPU.PCBase)
-		    {
-			if (S9xBreakpoint[Break].Enabled == 2)
-			    S9xBreakpoint[Break].Enabled = TRUE;
-			else
-			    CPU.Flags |= DEBUG_MODE_FLAG;
-		    }
-		}
-	    }
-#endif
 	    CHECK_SOUND ();
 
 	    if (CPU.Flags & IRQ_PENDING_FLAG)
@@ -178,61 +170,59 @@ void S9xMainLoop (void)
                         CPU.IRQCycleCount=1;
                 }
 	    }
-#ifdef DEBUGGER
-	    if (CPU.Flags & DEBUG_MODE_FLAG)
-		break;
-	    if (CPU.Flags & SCAN_KEYS_FLAG)
-		break;
-	    if (CPU.Flags & TRACE_FLAG)
-		S9xTrace ();
-
-	    if (CPU.Flags & SINGLE_STEP_FLAG)
-	    {
-		CPU.Flags &= ~SINGLE_STEP_FLAG;
-		CPU.Flags |= DEBUG_MODE_FLAG;
-	    }
-#endif
 	}
-#ifdef CPU_SHUTDOWN
-	CPU.PCAtOpcodeStart = CPU.PC;
+#ifdef DEBUG_CPU
+	if (cpu_debugging)
+		puts("/");
 #endif
-#ifdef USE_MEMORY_SPEED
-	CPU.Cycles += CPU.MemSpeed;
-#else
-	CPU.Cycles += 8;
-#endif
-
        {
 	unsigned timeslice=snes4all_timeslice;
-	while(timeslice--)
+	if (CPU.Flags) timeslice=1;
+	while(timeslice--) {
+#ifdef CPU_SHUTDOWN
+		CPU.PCAtOpcodeStart = CPU.PC;
+#endif
+#ifdef USE_MEMORY_SPEED
+		CPU.Cycles += CPU.MemSpeed;
+#else
+		CPU.Cycles += 8;
+#endif
+
+#ifdef DEBUG_CPU
+		if (cpu_debugging) {
+    			S9xPackStatus ();
+			printf("PC=%.4X, Opcode=%.2X %s\n",CPU.PC - CPU.PCBase,*CPU.PC,ICPU.S9xOpcodes==S9xOpcodesE1?"E1":ICPU.S9xOpcodes==S9xOpcodesM1X1?"M1X1":ICPU.S9xOpcodes==S9xOpcodesM1X0?"M1X0":ICPU.S9xOpcodes==S9xOpcodesM0X0?"M0X0":ICPU.S9xOpcodes==S9xOpcodesM0X1?"M0X1":"???");
+			printf("\tPB=%.2X DB=%.2X P=%.4X A=%.4X D=%.4X S=%.4X X=%.4X Y=%.4X\n",Registers.PB,Registers.DB,Registers.P.W,Registers.A.W,Registers.D.W,Registers.S.W,Registers.X.W,Registers.Y.W);
+		}
+#endif
 		(*ICPU.S9xOpcodes [*CPU.PC++].S9xOpcode) ();
+#ifdef DEBUG_CPU
+		if (cpu_debugging)
+			puts(".");
+#endif
+	}
        }
+#ifdef DEBUG_CPU
+	if (cpu_debugging)
+		puts("\\");
+#endif
 	
-	if (SA1.Executing)
-	    S9xSA1MainLoop ();
+	if (SA1.Executing) {
+#ifdef DEBUG_CPU
+		if (cpu_debugging)  {
+//			S9xSA1PackStatus();
+			printf("/SA1 PC=%.4X, Opcode=%.2X %s\n",SA1.PC - SA1.PCBase,*SA1.PC,SA1.S9xOpcodes==S9xSA1OpcodesM1X1?"M1X1":SA1.S9xOpcodes==S9xSA1OpcodesM1X0?"M1X0":SA1.S9xOpcodes==S9xSA1OpcodesM0X0?"M0X0":SA1.S9xOpcodes==S9xSA1OpcodesM0X1?"M0X1":"???");
+			printf("\tPB=%.2X DB=%.2X P=%.4X A=%.4X D=%.4X S=%.4X X=%.4X Y=%.4X\n",SA1Registers.PB,SA1Registers.DB,SA1Registers.P.W,SA1Registers.A.W,SA1Registers.D.W,SA1Registers.S.W,SA1Registers.X.W,SA1Registers.Y.W);
+		}
+#endif
+		S9xSA1MainLoop ();
+#ifdef DEBUG_CPU
+		if (cpu_debugging)
+			printf("SA1\\ PC=%.4X\n",SA1.PC - SA1.PCBase);
+#endif
+	}
 	DO_HBLANK_CHECK();
     }
-#ifdef DEBUGGER
-    Registers.PC = CPU.PC - CPU.PCBase;
-
-    S9xPackStatus ();
-    APURegisters.PC = IAPU.PC - IAPU.RAM;
-    S9xAPUPackStatus ();
-    if (CPU.Flags & SCAN_KEYS_FLAG)
-    {
-	if (!(CPU.Flags & FRAME_ADVANCE_FLAG))
-	    S9xSyncSpeed ();
-	CPU.Flags &= ~SCAN_KEYS_FLAG;
-    }
-#ifdef DETECT_NASTY_FX_INTERLEAVE
-    if (CPU.BRKTriggered && Settings.SuperFX && !CPU.TriedInterleavedMode2)
-    {
-	CPU.TriedInterleavedMode2 = TRUE;
-	CPU.BRKTriggered = FALSE;
-	S9xDeinterleaveMode2 ();
-    }
-#endif
-#endif
 }
 
 void S9xSetIRQ (uint32 source)
@@ -268,20 +258,24 @@ void S9xDoHBlankProcessing ()
     switch (CPU.WhichEvent)
     {
     case HBLANK_START_EVENT:
+// .hblank_start:
 	if (IPPU.HDMA && CPU.V_Counter <= PPU.ScreenHeight)
 	    IPPU.HDMA = S9xDoHDMA (IPPU.HDMA);
 
 	break;
 
     case HBLANK_END_EVENT:
+// .hblank_end:
 	S9xSuperFXExec ();
 
 #ifndef USE_SOUND_DESYNC
 	{
 		static int valor=0;
 		valor++;
-		if(!(valor&snes4all_sound_throttle))
+		if (valor>=snes4all_sound_throttle) {
 			S9xGenerateSound ();
+			valor=0;
+		}
 	}
 #endif
 
@@ -303,27 +297,25 @@ void S9xDoHBlankProcessing ()
 	CPU.V_Counter=snes4all_vcounter[CPU.V_Counter];
 	if (CPU.V_Counter >= snes4all_max_vcounter)
 	{
+#ifdef USE_OLD_SYNC_SPEED
 		CPU.V_Counter = 0;
 		CMemory_FillRAM[0x213F]^=0x80;
 		PPU.RangeTimeOver = 0;
 		CPU.NMIActive = FALSE;
 		ICPU.Frame++;
 		PPU.HVBeamCounterLatched = 0;
-#ifdef DEBUGGER
-		CPU.Flags |= SCAN_KEYS_FLAG;
-#else
-	    	S9xSyncSpeed ();
 #endif
-		S9xStartHDMA ();
+	    	S9xSyncSpeed ();
 	}
 	else
+// L162:
 	if (CPU.V_Counter == PPU.ScreenHeight + FIRST_VISIBLE_LINE)
 	{
 	    // Start of V-blank
 	    S9xEndScreenRefresh ();
+#ifdef USE_OLD_END_REFRESH
 	    IPPU.HDMA = 0;
 	    // Bits 7 and 6 of $4212 are computed when read in S9xGetPPU.
-	    missing.dma_this_frame = 0;
 	    IPPU.MaxBrightness = PPU.Brightness;
 	    PPU.ForcedBlanking = (CMemory_FillRAM [0x2100] >> 7) & 1;
 
@@ -348,6 +340,7 @@ void S9xDoHBlankProcessing ()
 			CPU.Flags |= NMI_FLAG;
 			CPU.NMICycleCount = CPU.NMITriggerPoint;
 	    }
+#endif
 
 #ifdef OLD_SNAPSHOT_CODE
 	    if (CPU.Flags & SAVE_SNAPSHOT_FLAG)
@@ -367,19 +360,25 @@ void S9xDoHBlankProcessing ()
 #endif
 	}
 
+// L161:
 	if (PPU.VTimerEnabled && !PPU.HTimerEnabled &&
 	    CPU.V_Counter == PPU.IRQVBeamPos)
 	{
+// L163:
 	    S9xSetIRQ (PPU_V_BEAM_IRQ_SOURCE);
 	}
 
+// L165:
 	if (CPU.V_Counter == FIRST_VISIBLE_LINE)
 	{
+#ifdef USE_OLD_START_REFRESH
 	    S9xUpdateJoypads ();
 	    CMemory_FillRAM[0x4210] = Model->_5A22;
 	    CPU.Flags &= ~NMI_FLAG;
+#endif
 	    S9xStartScreenRefresh ();
 	}
+// L177:
 	if (CPU.V_Counter >= FIRST_VISIBLE_LINE &&
 	    CPU.V_Counter < PPU.ScreenHeight + FIRST_VISIBLE_LINE)
 	{
@@ -397,6 +396,11 @@ void S9xDoHBlankProcessing ()
 	break;
     }
     S9xReschedule ();
+#ifdef DEBUG_CPU
+    if (cpu_debugging) {
+	    printf("HSYNC, APU Cyles=%u, PC=%.4X\n\tS=%.2X, X=%.2X, P=%.2X, A=%.2X, Y=%.2X\n",APU.Cycles,APURegisters.PC,APURegisters.S,APURegisters.X,APURegisters.P,APURegisters.YA.B.A,APURegisters.YA.B.Y);
+    }
+#endif
     snes4all_prof_end(1);
 }
 

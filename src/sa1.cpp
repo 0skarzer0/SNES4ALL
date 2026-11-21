@@ -223,11 +223,7 @@ uint8 S9xSA1GetByte (uint32 address)
 	else
 	    return ((SA1.BWRAM [(address >> 1) & 0xffff] >> ((address & 1) << 2)) & 15);
 
-    case CMemory_MAP_DEBUG:
     default:
-#ifdef DEBUGGER
-//	printf ("R(B) %06x\n", address);
-#endif
         return OpenBus;
     }
 }
@@ -342,11 +338,6 @@ void S9xSA1SetPCBase (uint32 address)
 	SA1.PC = SA1.PCBase + (address & 0xffff);
 	return;
 
-    case CMemory_MAP_DEBUG:
-#ifdef DEBUGGER
-	printf ("SBP %06x\n", address);
-#endif
-	
     default:
     case CMemory_MAP_NONE:
 	SA1.PCBase = CMemory_RAM;
@@ -431,7 +422,7 @@ uint8 S9xGetSA1 (uint32 address)
 	return (byte);
     }
     default:	
-	printf ("R: %04x\n", address);
+//	printf ("R: %04x\n", address);
 	break;
     }
     return (CMemory_FillRAM [address]);
@@ -463,9 +454,6 @@ void S9xSetSA1 (uint8 byte, uint32 address)
 	if (byte & 0x10)
 	{
 	    CMemory_FillRAM [0x2301] |= 0x10;
-#ifdef DEBUGGER
-		printf ("###SA1 NMI\n");
-#endif
 	    if (CMemory_FillRAM [0x220a] & 0x10)
 	    {
 	    }
@@ -549,13 +537,11 @@ void S9xSetSA1 (uint8 byte, uint32 address)
 	    SA1.IRQActive |= DMA_IRQ_SOURCE;
 //	    SA1.Executing = !SA1.Waiting;
 	}
+	/*
 	if (((byte ^ CMemory_FillRAM [0x220a]) & 0x10) &&
 	    (CMemory_FillRAM [0x2301] & byte & 0x10))
 	{
-#ifdef DEBUGGER
-	    printf ("###SA1 NMI\n");
-#endif
-	}
+	}*/
 	break;
     case 0x220b:
 	if (byte & 0x80)
@@ -603,19 +589,19 @@ void S9xSetSA1 (uint8 byte, uint32 address)
 #endif
 	break;
     case 0x2211:
-	printf ("Timer reset\n");
+//	printf ("Timer reset\n");
 	break;
     case 0x2212:
-	printf ("H-Timer %04x\n", byte | (CMemory_FillRAM [0x2213] << 8));
+//	printf ("H-Timer %04x\n", byte | (CMemory_FillRAM [0x2213] << 8));
 	break;
     case 0x2213:
-	printf ("H-Timer %04x\n", (byte << 8) | CMemory_FillRAM [0x2212]);
+//	printf ("H-Timer %04x\n", (byte << 8) | CMemory_FillRAM [0x2212]);
 	break;
     case 0x2214:
-	printf ("V-Timer %04x\n", byte | (CMemory_FillRAM [0x2215] << 8));
+//	printf ("V-Timer %04x\n", byte | (CMemory_FillRAM [0x2215] << 8));
 	break;
     case 0x2215:
-	printf ("V-Timer %04x\n", (byte << 8) | CMemory_FillRAM [0x2214]);
+//	printf ("V-Timer %04x\n", (byte << 8) | CMemory_FillRAM [0x2214]);
 	break;
     case 0x2220:
     case 0x2221:

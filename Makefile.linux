@@ -1,6 +1,7 @@
 #USE_CPUASM=1
 #USE_MMX=1
 #USE_ZSNES_FX=1
+USE_GL=1
 
 
 NAME   = snes4all
@@ -14,7 +15,11 @@ STRIP  = strip
 PROG   = $(NAME)
 
 DEFS += -DSNES4ALL_MAX_ROM_SIZE=0x600000
+ifdef USE_GL
+DEFS += -DUSE_GL
+else
 #DEFS += -DNORES256
+endif
 
 #DEFS += -DPLAYBACK_RATE=22050
 DEFS += -DCPU_SHUTDOWN
@@ -23,6 +28,7 @@ DEFS += -DEXECUTE_SUPERFX_PER_LINE
 DEFS += -DSPC700_C
 DEFS += -DVAR_CYCLES
 DEFS += -DSDD1_DECOMP
+DEFS += -DUSE_NO_WAIT_WHEN_IRQ
 DEFS += -DNO_INLINE_SET_GET
 #DEFS += -DUSE_MEMORY_SPEED
 #DEFS += -DUSE_BLOCK_RAM
@@ -35,26 +41,65 @@ DEFS += -DNO_INLINE_SET_GET
 #DEFS += -DUSE_MODE7_INTERPOLATE
 DEFS += -DENABLE_GRAPHIC_WINDOWS
 DEFS += -DENABLE_HDMA
+#DEFS += -DUSE_HDMA_EVENT
+DEFS += -DUSE_OLD_DSP1
 #DEFS += -DNEW_COLOUR_BLENDING
 #DEFS += -DOLD_COLOUR_BLENDING
 #DEFS += -DSNES4ALL_NUM_CHANNELS=6
 #DEFS += -DSNES4ALL_STEREO
-DEFS += -DDIRECT_COLOR_MAP
+#DEFS += -DDIRECT_COLOR_MAP
 #DEFS += -DTEST_CACHETILE
 #DEFS += -DTILES_INLINE
+DEFS += -DUSE_RASTER_DIFF
+DEFS += -DUSE_SETPPU_TABLE
+DEFS += -DUSE_GETPPU_TABLE
+#DEFS += -DUSE_VIDEOGL_SELECTIVE_CACHE_RESET=1
+DEFS += -DUSE_VIDEOGL_SELECTIVE_CACHE_RESET=4
+#DEFS += -DUSE_VIDEOGL_EXTEND_TILELIST
+#DEFS += -DUSE_VGL_TABLE
+#DEFS += -DUSE_VGL_LARGE_TABLE
 
 #DEFS += -DNOSOUND
 
-#DEFS += -DAUTOLOAD=\"example/smario.smc\"
+#DEFS += -DAUTOLOAD=\"example/Super\ Metroid.zip\"
+#DEFS += -DAUTOLOAD=\"example/Aladdin.zip\"
+#DEFS += -DAUTOLOAD=\"example/castlevania.zip\"
+#DEFS += -DAUTOLOAD=\"example/smario.zip\"
+#DEFS += -DAUTOLOAD=\"example/fzero.zip\"
+#DEFS += -DAUTOLOAD=\"example/rrunner.zip\"
+#DEFS += -DAUTOLOAD=\"example/supergoal.zip\"
+#DEFS += -DAUTOLOAD=\"example/dkcountry.zip\"
+#DEFS += -DAUTOLOAD=\"example/pacintime.zip\"
+#DEFS += -DAUTOLOAD=\"example/starwars.zip\"
+#DEFS += -DAUTOLOAD=\"example/jurassic.zip\"
+#DEFS += -DAUTOLOAD=\"example/jimpower.zip\"
+#DEFS += -DAUTOLOAD=\"example/turrican.zip\"
+#DEFS += -DAUTOLOAD=\"example/sfighter.zip\"
+#DEFS += -DAUTOLOAD=\"example/rtype.zip\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"castlevania.ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"rtype.1ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"sfighter.2ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"jimpower.ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"turrican.ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"pacintime.ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"jurassic.ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"supergoal.ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"smario.ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"fzero.ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"smario.1ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"prueba.ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"rrunner.ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"Aladdin.ssn\"
+#DEFS += -DAUTO_LOADSAVESTATE=\"Super\ Metroid.1ssn\"
 #DEFS += -DAUTO_EVENTS
-#DEFS += -DMAX_AUTO_EVENTS=1000
+#DEFS += -DMAX_AUTO_EVENTS=50
+#DEFS += -DMAX_AUTO_EVENTS=500
 
 #DEFS += -DPROFILER_SNES4ALL
 
 #DEFS += -DDEBUG_FRAMESKIP
 #DEFS += -DAUTO_DEBUG_FRAMESKIP=1000
 #DEFS += -DDISPLAY_FRAMERATE
-#DEFS += -DUSE_RENDER_BACK
 
 #DEFS += -DDEBUG_TILECACHE
 #DEFS += -DAUTO_DEBUG_TILECACHE=2000
@@ -77,6 +122,11 @@ endif
 DEFAULT_CFLAGS = `sdl-config --cflags`
 LDFLAGS        = `sdl-config --libs` -lSDL_mixer -lz
 
+ifdef USE_GL
+LDFLAGS += -lGL
+endif
+
+
 MORE_CFLAGS = -O3 -DDATA_PREFIX=\"data/\" 
 
 MORE_CFLAGS +=	-Isrc/include -Isrc/unzip -Isrc/menu -Isrc/i386 -DMITSHM \
@@ -92,13 +142,11 @@ CPPFLAGS  = $(DEFAULT_CFLAGS) $(MORE_CFLAGS)
 OBJS =	\
 	src/2xsai.o \
 	src/apu.o \
-	src/apudebug.o \
 	src/c4.o \
 	src/cheats.o \
 	src/cheats2.o \
 	src/clip.o \
 	src/cpu.o \
-	src/debug.o \
 	src/data.o \
 	src/dma.o \
 	src/dsp1.o \
@@ -120,7 +168,6 @@ OBJS =	\
 	src/seta018.o \
 	src/snaporig.o \
 	src/snapshot.o \
-	src/snes9x.o \
 	src/soundux.o \
 	src/spc700.o \
 	src/spc7110.o \
@@ -138,6 +185,12 @@ OBJS =	\
 	src/menu/menu_main.o \
 	src/menu/menu_save.o \
 	src/menu/menu_load.o
+
+ifdef USE_GL
+OBJS += \
+	src/sdl/videogl.o \
+	src/tilegl.o
+endif
 
 ifdef USE_CPUASM
 OBJS += \

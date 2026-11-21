@@ -190,12 +190,3 @@ void S9xSetSoundControl (int)
 {
 }
 
-#ifdef DEBUGGER
-START_EXTERN_C
-void S9xDeinitAPU ()
-{
-}
-
-END_EXTERN_C
-#endif
-

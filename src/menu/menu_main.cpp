@@ -9,10 +9,11 @@
 extern int __sdl_dc_wait_vblank;
 #endif
 
-static char *text_str_title="SNES4ALL Beta1 --";
+static char *text_str_title="  SNES4ALL Beta2 ";
 static char *text_str_load="Select ROM (X)";
 static char *text_str_save="SaveStates (Y)";
 static char *text_str_autosave="Save SRAM";
+static char *text_str_hw_render="HW Render";
 static char *text_str_throttle="Throttle ";
 static char *text_str_frameskip="Frameskip";
 static char *text_str_transparency="Transparency";
@@ -32,7 +33,9 @@ static char *text_str_sound="Sound";
 static char *text_str_on="On";
 static char *text_str_off="Off";
 static char *text_str_fast="Fast";
+static char *text_str_normal="Reg";
 static char *text_str_sync="Sync";
+static char *text_str_no="No";
 static char *text_str_0p="0/";
 static char *text_str_25p="25/";
 static char *text_str_50p="50/";
@@ -54,6 +57,7 @@ extern int	snes4all_frameskip;
 extern int	snes4all_transparency;
 extern int	snes4all_sound_enable;
 extern int	snes4all_autosave;
+extern int	snes4all_hw_render;
 extern int menu_moving;
 extern char *rom_filename;
 extern int snes4all_emulating;
@@ -80,7 +84,7 @@ static int list_files(void)
 static void draw_mainMenu(int c)
 {
 	static int b=0;
-	int bb=(b%6)/3;
+	int bb=(b&3); //(b%6)/3;
 
 	text_draw_background();
 	text_draw_window(40,24,260,200+8,text_str_title);
@@ -99,63 +103,63 @@ static void draw_mainMenu(int c)
 
 	write_text(6,9,text_str_throttle);
 	if ((snes4all_throttle==0)&&((c!=2)||(bb)))
-		write_text_sel(19,9,text_str_0);
+		write_text_sel3(19,9,text_str_0);
 	else
 		write_text(19,9,text_str_0);
 	if ((snes4all_throttle==1)&&((c!=2)||(bb)))
-		write_text_sel(21,9,text_str_25);
+		write_text_sel3(21,9,text_str_25);
 	else
 		write_text(21,9,text_str_25);
 	if ((snes4all_throttle==2)&&((c!=2)||(bb)))
-		write_text_sel(24,9,text_str_50);
+		write_text_sel3(24,9,text_str_50);
 	else
 		write_text(24,9,text_str_50);
 	if ((snes4all_throttle==3)&&((c!=2)||(bb)))
-		write_text_sel(27,9,text_str_75);
+		write_text_sel3(27,9,text_str_75);
 	else
 		write_text(27,9,text_str_75);
 	if ((snes4all_throttle==4)&&((c!=2)||(bb)))
-		write_text_sel(30,9,text_str_100);
+		write_text_sel3(30,9,text_str_100);
 	else
 		write_text(30,9,text_str_100);
 
 	write_text(6,11,text_str_frameskip);
 	if ((snes4all_frameskip==0)&&((c!=3)||(bb)))
-		write_text_sel(19,11,text_str_0);
+		write_text_sel3(19,11,text_str_0);
 	else
 		write_text(19,11,text_str_0);
 	if ((snes4all_frameskip==1)&&((c!=3)||(bb)))
-		write_text_sel(21,11,text_str_1);
+		write_text_sel3(21,11,text_str_1);
 	else
 		write_text(21,11,text_str_1);
 	if ((snes4all_frameskip==2)&&((c!=3)||(bb)))
-		write_text_sel(23,11,text_str_2);
+		write_text_sel3(23,11,text_str_2);
 	else
 		write_text(23,11,text_str_2);
 	if ((snes4all_frameskip==3)&&((c!=3)||(bb)))
-		write_text_sel(25,11,text_str_3);
+		write_text_sel3(25,11,text_str_3);
 	else
 		write_text(25,11,text_str_3);
 	if ((snes4all_frameskip==4)&&((c!=3)||(bb)))
-		write_text_sel(27,11,text_str_4);
+		write_text_sel3(27,11,text_str_4);
 	else
 		write_text(27,11,text_str_4);
 	if ((snes4all_frameskip==5)&&((c!=3)||(bb)))
-		write_text_sel(29,11,text_str_5);
+		write_text_sel3(29,11,text_str_5);
 	else
 		write_text(29,11,text_str_5);
 	if ((snes4all_frameskip==-1)&&((c!=3)||(bb)))
-		write_text_sel(31,11,text_str_auto);
+		write_text_sel3(31,11,text_str_auto);
 	else
 		write_text(31,11,text_str_auto);
 
 	write_text(6,13,text_str_transparency);
 	if ((snes4all_transparency==0)&&((c!=4)||(bb)))
-		write_text_sel(19,13,text_str_off);
+		write_text_sel3(19,13,text_str_off);
 	else
 		write_text(19,13,text_str_off);
 	if ((snes4all_transparency!=0)&&((c!=4)||(bb)))
-		write_text_sel(25,13,text_str_on);
+		write_text_sel3(25,13,text_str_on);
 	else
 		write_text(25,13,text_str_on);
 
@@ -183,29 +187,62 @@ static void draw_mainMenu(int c)
 
 	write_text(6,17,text_str_sound);
 	if ((snes4all_sound_enable==0)&&((c!=6)||(bb)))
-		write_text_sel(19,17,text_str_off);
+		write_text_sel3(19,17,text_str_no);
 	else
-		write_text(19,17,text_str_off);
+		write_text(19,17,text_str_no);
 	if ((snes4all_sound_enable==1)&&((c!=6)||(bb)))
-		write_text_sel(23,17,text_str_fast);
+		write_text_sel3(22,17,text_str_fast);
 	else
-		write_text(23,17,text_str_fast);
+		write_text(22,17,text_str_fast);
 	if ((snes4all_sound_enable==2)&&((c!=6)||(bb)))
-		write_text_sel(28,17,text_str_sync);
+		write_text_sel3(27,17,text_str_normal);
 	else
-		write_text(28,17,text_str_sync);
+		write_text(27,17,text_str_normal);
+	if ((snes4all_sound_enable==3)&&((c!=6)||(bb)))
+		write_text_sel3(31,17,text_str_sync);
+	else
+		write_text(31,17,text_str_sync);
 
 	write_text(6,19,text_str_autosave);
 	if ((!snes4all_autosave)&&((c!=7)||(bb)))
-		write_text_sel(19,19,text_str_off);
+		write_text_sel3(19,19,text_str_off);
 	else
 		write_text(19,19,text_str_off);
 	if ((snes4all_autosave)&&((c!=7)||(bb)))
-		write_text_sel(25,19,text_str_on);
+		write_text_sel3(25,19,text_str_on);
 	else
 		write_text(25,19,text_str_on);
 
 
+#ifdef USE_GL
+	write_text(6,21,text_str_hw_render);
+	if ((!snes4all_hw_render)&&((c!=8)||(bb)))
+		write_text_sel3(19,21,text_str_off);
+	else
+		write_text(19,21,text_str_off);
+	if ((snes4all_hw_render)&&((c!=8)||(bb)))
+		write_text_sel3(25,21,text_str_on);
+	else
+		write_text(25,21,text_str_on);
+
+	write_text(6,22,text_str_separator);
+	if ((c==9)&&(bb))
+		write_text_sel(6,23,text_str_reset);
+	else
+		write_text(6,23,text_str_reset);
+
+	write_text(6,24,text_str_separator);
+	if ((c==10)&&(bb))
+		write_text_sel(6,25,text_str_run);
+	else
+		write_text(6,25,text_str_run);
+
+	write_text(6,26,text_str_separator);
+	if ((c==11)&&(bb))
+		write_text_sel(6,27,text_str_exit);
+	else
+		write_text(6,27,text_str_exit);
+#else
 	write_text(6,20,text_str_separator);
 	if ((c==8)&&(bb))
 		write_text_sel(6,21,text_str_reset);
@@ -225,6 +262,7 @@ static void draw_mainMenu(int c)
 	else
 		write_text(6,26,text_str_exit);
 	write_text(6,27,text_str_separator);
+#endif
 
 	text_flip();
 	b++;
@@ -272,7 +310,11 @@ static int key_mainMenu(int *cp)
 			{
 				back_c=c;
 				hit0=1;
-				c=7;
+#ifdef USE_GL
+				c=9;
+#else
+				c=8;
+#endif
 			}
 			else if (hit3)
 			{
@@ -288,15 +330,28 @@ static int key_mainMenu(int *cp)
 			{
 				back_c=c;
 				hit0=1;
-				c=8;
+#ifdef USE_GL
+				c=10;
+#else
+				c=9;
+#endif
 			}
-			else if (up)
+			if (up)
 			{
+#ifdef USE_GL
+				if (c>0) c=(c-1)%12;
+				else c=11;
+#else
 				if (c>0) c=(c-1)%11;
 				else c=10;
+#endif
 			}
 			else if (down)
+#ifdef USE_GL
+				c=(c+1)%12;
+#else
 				c=(c+1)%11;
+#endif
 			else
 			switch(c)
 			{
@@ -361,10 +416,10 @@ static int key_mainMenu(int *cp)
 					break;
 				case 6:	// SOUND
 					if (left) {
-						if (!snes4all_sound_enable) snes4all_sound_enable=2;
+						if (!snes4all_sound_enable) snes4all_sound_enable=3;
 						else snes4all_sound_enable--;
 					} else if (right) {
-						if (snes4all_sound_enable==2) snes4all_sound_enable=0;
+						if (snes4all_sound_enable==3) snes4all_sound_enable=0;
 						else snes4all_sound_enable++;
 					}
 					break;
@@ -372,21 +427,36 @@ static int key_mainMenu(int *cp)
 					if ((left)||(right))
 						 snes4all_autosave=~snes4all_autosave;
 					break;
-				case 8:	// RESET
+				case 8:	// RESET / HW_RENDER
+#ifdef USE_GL
+					if ((left)||(right))
+						 snes4all_hw_render=~snes4all_hw_render;
+					
+					break;
+				case 9:
+#endif
 					if (hit0)
 					{
 						mainMenu_case=MAIN_MENU_CASE_RESET;
 						end=1;
 					}
 					break;
+#ifdef USE_GL
+				case 10:// RUN
+#else
 				case 9:	// RUN
+#endif
 					if (hit0)
 					{
 						mainMenu_case=MAIN_MENU_CASE_RUN;
 						end=1;
 					}
 					break;
+#ifdef USE_GL
+				case 11:// EXIT
+#else
 				case 10:// EXIT
+#endif
 					if (hit0)
 					{
 						mainMenu_case=MAIN_MENU_CASE_REBOOT;

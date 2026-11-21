@@ -100,307 +100,706 @@
 	\LASTOPCODE
 .endm
 
-.align 2
+.align 5
 	
 /* ADC */
 Op69M1:
 	Immediate8 ADC
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 IMM8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op69M0:
 	Immediate16 ADC2
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 IMM16
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op65M1:
 	Direct8_i ADC2
 	call_S9xGetByte Direct8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 DIR8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op65M0:
 	Direct8_i ADC
 	call_S9xGetWord Direct8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 DIR16
+#endif
 	
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op75M1:
 	DirectIndexedX8_i ADC
 	call_S9xGetByte DirectIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 DIX8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op75M0:
 	DirectIndexedX8_i ADC2
 	call_S9xGetWord DirectIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 DIX16
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op72M1:
 	DirectIndirect8_i ADC
 	call_S9xGetByte DirectIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 DI8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op72M0:
 	DirectIndirect8_i ADC2
 	call_S9xGetWord DirectIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 DI16
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op61M1:
 	DirectIndexedIndirect8_i ADC
 	call_S9xGetByte DirectIndexedIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 DII8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op61M0:
 	DirectIndexedIndirect8_i ADC2
 	call_S9xGetWord DirectIndexedIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 DII16
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op71M1:
 	DirectIndirectIndexed8_i ADC
 	call_S9xGetByte DirectIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 DIIY8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op71M0:
 	DirectIndirectIndexed8_i ADC2
 	call_S9xGetWord DirectIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 DIIY16
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op67M1:
 	DirectIndirectLong8_i ADC
 	call_S9xGetByte DirectIndirectLong8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 DIL8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op67M0:
 	DirectIndirectLong8_i ADC2
 	call_S9xGetWord DirectIndirectLong8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 DIL16
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op77M1:
 	DirectIndirectIndexedLong8_i ADC
 	call_S9xGetByte DirectIndirectIndexedLong8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 DIIL8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op77M0:
 	DirectIndirectIndexedLong8_i ADC2
 	call_S9xGetWord DirectIndirectIndexedLong8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 DIIL8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op6DM1:
 	Absolute8_i ADC
 	call_S9xGetByte Absolute8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 ABS8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op6DM0:
 	Absolute8_i ADC2
 	call_S9xGetWord Absolute8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 ABS16
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op7DM1:
 	AbsoluteIndexedX8_i ADC
 	call_S9xGetByte AbsoluteIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 ABSX8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op7DM0:
 	AbsoluteIndexedX8_i ADC2
 	call_S9xGetWord AbsoluteIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 ABSX16
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op79M1:
 	AbsoluteIndexedY8_i ADC
 	call_S9xGetByte AbsoluteIndexedY8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 ABSY8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op79M0:
 	AbsoluteIndexedY8_i ADC2
 	call_S9xGetWord AbsoluteIndexedY8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 ABSY16
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op6FM1:
 	AbsoluteLong8_i ADC
 	call_S9xGetByte AbsoluteLong8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 ABSL8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op6FM0:
 	AbsoluteLong8_i ADC2
 	call_S9xGetWord AbsoluteLong8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 ABSL16
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op7FM1:
 	AbsoluteLongIndexedX8_i ADC
 	call_S9xGetByte AbsoluteLongIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 ALX8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op7FM0:
 	AbsoluteLongIndexedX8_i ADC2
 	call_S9xGetWord AbsoluteLongIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 ALX16
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op63M1:
 	StackRelative8_i ADC
 	call_S9xGetByte StackRelative8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M1_Adc8
+	nop
+#else
 	Adc8 SREL8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op63M0:
 	StackRelative8_i ADC2
 	call_S9xGetWord StackRelative8_f
+#ifdef USE_ASM_SMALL
+	bra .Op73M0_Adc16
+	nop
+#else
 	Adc16 SREL16
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op73M1:
 	StackRelativeIndirectIndexed8_i ADC
 	call_S9xGetByte StackRelativeIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+.Op73M1_Adc8:
+#endif
 	Adc8 SRII8
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op73M0:
 	StackRelativeIndirectIndexed8_i ADC2
 	call_S9xGetWord StackRelativeIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+.Op73M0_Adc16:
+#endif
 	Adc16 SRII16
 
 /* AND */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op29M1:
 	Immediate8 AND
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 IMM8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op29M0:
 	Immediate16 AND
 	And16 IMM16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op25M1:
 	Direct8_i AND
 	call_S9xGetByte Direct8_f
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 DIR8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op25M0:
 	Direct8_i AND2
 	call_S9xGetWord Direct8_f
 	And16 DIR16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op35M1:
 	DirectIndexedX8_i AND
 	call_S9xGetByte DirectIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 DIX8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op35M0:
 	DirectIndexedX8_i AND2
 	call_S9xGetWord DirectIndexedX8_f
 	And16 DIX16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op32M1:
 	DirectIndirect8_i AND
 	call_S9xGetByte DirectIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 DI8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op32M0:
 	DirectIndirect8_i AND2
 	call_S9xGetWord DirectIndirect8_f
 	And16 DI16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op21M1:
 	DirectIndexedIndirect8_i AND
 	call_S9xGetByte DirectIndexedIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 DII8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op21M0:
 	DirectIndexedIndirect8_i AND2
 	call_S9xGetWord DirectIndexedIndirect8_f
 	And16 DII16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op31M1:
 	DirectIndirectIndexed8_i AND
 	call_S9xGetByte DirectIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 DIIY8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op31M0:
 	DirectIndirectIndexed8_i AND2
 	call_S9xGetWord DirectIndirectIndexed8_f
 	And16 DIIY16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op27M1:
 	DirectIndirectLong8_i AND
 	call_S9xGetByte DirectIndirectLong8_f
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 DIL8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op27M0:
 	DirectIndirectLong8_i AND2
 	call_S9xGetWord DirectIndirectLong8_f
 	And16 DIL16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op37M1:
 	DirectIndirectIndexedLong8_i AND
 	call_S9xGetByte DirectIndirectIndexedLong8_f
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 DIIL8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op37M0:
 	DirectIndirectIndexedLong8_i AND2
 	call_S9xGetWord DirectIndirectIndexedLong8_f
 	And16 DIIL16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op2DM1:
 	Absolute8_i AND
 	call_S9xGetByte Absolute8_f
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 ABS8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op2DM0:
 	Absolute8_i AND2
 	call_S9xGetWord Absolute8_f
 	And16 ABS16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op3DM1:
 	AbsoluteIndexedX8_i AND
 	call_S9xGetByte AbsoluteIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 ABSX8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op3DM0:
 	AbsoluteIndexedX8_i AND2
 	call_S9xGetWord AbsoluteIndexedX8_f
 	And16 ABSX16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op39M1:
 	AbsoluteIndexedY8_i AND
 	call_S9xGetByte AbsoluteIndexedY8_f
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 ABSY8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op39M0:
 	AbsoluteIndexedY8_i AND2
 	call_S9xGetWord AbsoluteIndexedY8_f
 	And16 ABSY16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op2FM1:
 	AbsoluteLong8_i AND
 	call_S9xGetByte AbsoluteLong8_f
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 ABSL8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op2FM0:
 	AbsoluteLong8_i AND2
 	call_S9xGetWord AbsoluteLong8_f
 	And16 ABSL16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op3FM1:
 	AbsoluteLongIndexedX8_i AND
 	call_S9xGetByte AbsoluteLongIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 ALX8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op3FM0:
 	AbsoluteLongIndexedX8_i AND2
 	call_S9xGetWord AbsoluteLongIndexedX8_f
 	And16 ALX16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op23M1:
 	StackRelative8_i AND
 	call_S9xGetByte StackRelative8_f
+#ifdef USE_ASM_SMALL
+	bra .Op33M1_And8
+	nop
+#else
 	And8 SREL8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op23M0:
 	StackRelative8_i AND2
 	call_S9xGetWord StackRelative8_f
 	And16 SREL16
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op33M1:
 	StackRelativeIndirectIndexed8_i AND
 	call_S9xGetByte StackRelativeIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+.Op33M1_And8:
+#endif
 	And8 SRII8
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op33M0:
 	StackRelativeIndirectIndexed8_i AND2
 	call_S9xGetWord StackRelativeIndirectIndexed8_f
 	And16 SRII16
 
 /* ASL */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op0AM1:
 	extu.b A,r1
 	sub r1,A
@@ -418,6 +817,9 @@ Op0AM1:
 .Asl8Carry:
 	SetZNjmp A
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op0AM0:
 	extu.w A,r1
 #ifdef VAR_CYCLES
@@ -433,39 +835,102 @@ Op0AM0:
 .Asl16Carry:
 	Set16ZNjmp A
 	
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op06M1:
 	Direct8 ASL
+#ifdef USE_ASM_SMALL
+	bra .Op1EM1_Asl8
+	nop
+#else
 	Asl8 DIR8
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op06M0:
 	Direct8 ASL2
+#ifdef USE_ASM_SMALL
+	bra .Op1EM0_Asl16
+	nop
+#else
 	Asl16 DIR16
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op16M1:
 	DirectIndexedX8 ASL
+#ifdef USE_ASM_SMALL
+	bra .Op1EM1_Asl8
+	nop
+#else
 	Asl8 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op16M0:
 	DirectIndexedX8 ASL2
+#ifdef USE_ASM_SMALL
+	bra .Op1EM0_Asl16
+	nop
+#else
 	Asl16 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op0EM1:
 	Absolute8 ASL
+#ifdef USE_ASM_SMALL
+	bra .Op1EM1_Asl8
+	nop
+#else
 	Asl8 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op0EM0:
 	Absolute8 ASL2
+#ifdef USE_ASM_SMALL
+	bra .Op1EM0_Asl16
+	nop
+#else
 	Asl16 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op1EM1:
 	AbsoluteIndexedX8 ASL
+#ifdef USE_ASM_SMALL
+.Op1EM1_Asl8:
+#endif
 	Asl8 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op1EM0:
 	AbsoluteIndexedX8 ASL2
+#ifdef USE_ASM_SMALL
+.Op1EM0_Asl16:
+#endif
 	Asl16 ABSX
 
 /* BIT */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op89M1:
 	Immediate8 BIT
 	and A, r0
@@ -474,6 +939,9 @@ Op89M1:
 	jmp @r13
 	or r0,r7
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op89M0:
 	Immediate16 BIT
 	and A, r0
@@ -482,247 +950,634 @@ Op89M0:
 	jmp @r13
 	or r0,r7
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op24M1:
 	Direct8 BIT
+#ifdef USE_ASM_SMALL
+	bra .Op3CM1_Bit8
+	nop
+#else
 	Bit8 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op24M0:
 	Direct8 BIT
+#ifdef USE_ASM_SMALL
+	bra .Op3CM0_Bit16
+	nop
+#else
 	Bit16 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op34M1:
 	DirectIndexedX8 BIT
+#ifdef USE_ASM_SMALL
+	bra .Op3CM1_Bit8
+	nop
+#else
 	Bit8 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op34M0:
 	DirectIndexedX8 BIT2
+#ifdef USE_ASM_SMALL
+	bra .Op3CM0_Bit16
+	nop
+#else
 	Bit16 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op2CM1:
 	Absolute8 BIT
+#ifdef USE_ASM_SMALL
+	bra .Op3CM1_Bit8
+	nop
+#else
 	Bit8 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op2CM0:
 	Absolute8 BIT2
+#ifdef USE_ASM_SMALL
+	bra .Op3CM0_Bit16
+	nop
+#else
 	Bit16 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op3CM1:
 	AbsoluteIndexedX8 BIT
+#ifdef USE_ASM_SMALL
+.Op3CM1_Bit8:
+#endif
 	Bit8 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op3CM0:
 	AbsoluteIndexedX8 BIT2
+#ifdef USE_ASM_SMALL
+.Op3CM0_Bit16:
+#endif
 	Bit16 ABSX
 
 /* CMP */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC9M1:
 	Immediate8 CMP
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 IMM
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC9M0:
 	Immediate16 CMP
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 IMM
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC5M1:
 	Direct8_i CMP
 	call_S9xGetByte Direct8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC5M0:
 	Direct8_i CMP2
 	call_S9xGetWord Direct8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD5M1:
 	DirectIndexedX8_i CMP
 	call_S9xGetByte DirectIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD5M0:
 	DirectIndexedX8_i CMP2
 	call_S9xGetWord DirectIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD2M1:
 	DirectIndirect8_i CMP
 	call_S9xGetByte DirectIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 DI
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD2M0:
 	DirectIndirect8_i CMP2
 	call_S9xGetWord DirectIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 DI
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC1M1:
 	DirectIndexedIndirect8_i CMP
 	call_S9xGetByte DirectIndexedIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 DII
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC1M0:
 	DirectIndexedIndirect8_i CMP2
 	call_S9xGetWord DirectIndexedIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 DII
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD1M1:
 	DirectIndirectIndexed8_i CMP
 	call_S9xGetByte DirectIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 DIIY
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD1M0:
 	DirectIndirectIndexed8_i CMP2
 	call_S9xGetWord DirectIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 DIIY
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC7M1:
 	DirectIndirectLong8_i CMP
 	call_S9xGetByte DirectIndirectLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 DIL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC7M0:
 	DirectIndirectLong8_i CMP2
 	call_S9xGetWord DirectIndirectLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 DIL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD7M1:
 	DirectIndirectIndexedLong8_i CMP
 	call_S9xGetByte DirectIndirectIndexedLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 DIIL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD7M0:
 	DirectIndirectIndexedLong8_i CMP2
 	call_S9xGetWord DirectIndirectIndexedLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 DIIL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpCDM1:
 	Absolute8_i CMP
 	call_S9xGetByte Absolute8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpCDM0:
 	Absolute8_i CMP2
 	call_S9xGetWord Absolute8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpDDM1:
 	AbsoluteIndexedX8_i CMP
 	call_S9xGetByte AbsoluteIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 ABSX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpDDM0:
 	AbsoluteIndexedX8_i CMP2
 	call_S9xGetWord AbsoluteIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 ABSX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD9M1:
 	AbsoluteIndexedY8_i CMP
 	call_S9xGetByte AbsoluteIndexedY8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 ABSY
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD9M0:
 	AbsoluteIndexedY8_i CMP2
 	call_S9xGetWord AbsoluteIndexedY8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 ABSY
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpCFM1:
 	AbsoluteLong8_i CMP
 	call_S9xGetByte AbsoluteLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 ABSL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpCFM0:
 	AbsoluteLong8_i CMP2
 	call_S9xGetWord AbsoluteLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 ABSL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpDFM1:
 	AbsoluteLongIndexedX8_i CMP
 	call_S9xGetByte AbsoluteLongIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 ALX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpDFM0:
 	AbsoluteLongIndexedX8_i CMP2
 	call_S9xGetWord AbsoluteLongIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 ALX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC3M1:
 	StackRelative8_i CMP
 	call_S9xGetByte StackRelative8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M1_Cmp8
+	nop
+#else
 	Cmp8 SREL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC3M0:
 	StackRelative8_i CMP2
 	call_S9xGetWord StackRelative8_f
+#ifdef USE_ASM_SMALL
+	bra .OpD3M0_Cmp16
+	nop
+#else
 	Cmp16 SREL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD3M1:
 	StackRelativeIndirectIndexed8_i CMP
 	call_S9xGetByte StackRelativeIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+.OpD3M1_Cmp8:
+#endif
 	Cmp8 SRII
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD3M0:
 	StackRelativeIndirectIndexed8_i CMP2
 	call_S9xGetWord StackRelativeIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+.OpD3M0_Cmp16:
+#endif
 	Cmp16 SRII
 
 /* CPX */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE0X1:
 	Immediate8 CPX
+#ifdef USE_ASM_SMALL
+	bra .OpECX1_Cpx8
+	nop
+#else
 	Cpx8 IMM
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE0X0:
 	Immediate16 CPX
+#ifdef USE_ASM_SMALL
+	bra .OpECX0_Cpx16
+	nop
+#else
 	Cpx16 IMM
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE4X1:
 	Direct8_i CPX
 	call_S9xGetByte Direct8_f
+#ifdef USE_ASM_SMALL
+	bra .OpECX1_Cpx8
+	nop
+#else
 	Cpx8 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE4X0:
 	Direct8_i CPX2
 	call_S9xGetWord Direct8_f
+#ifdef USE_ASM_SMALL
+	bra .OpECX0_Cpx16
+	nop
+#else
 	Cpx16 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpECX1:
 	Absolute8_i CPX
 	call_S9xGetByte Absolute8_f
+#ifdef USE_ASM_SMALL
+.OpECX1_Cpx8:
+#endif
 	Cpx8 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpECX0:
 	Absolute8_i CPX2
 	call_S9xGetWord Absolute8_f
+#ifdef USE_ASM_SMALL
+.OpECX0_Cpx16:
+#endif
 	Cpx16 ABS
 
 
 /* CPY */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC0X1:
 	Immediate8 CPY
+#ifdef USE_ASM_SMALL
+	bra .OpCCX1_Cpy8
+	nop
+#else
 	Cpy8 IMM
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC0X0:
 	Immediate16 CPY
+#ifdef USE_ASM_SMALL
+	bra .OpCCX0_Cpy16
+	nop
+#else
 	Cpy16 IMM
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC4X1:
 	Direct8_i CPY
 	call_S9xGetByte Direct8_f
+#ifdef USE_ASM_SMALL
+	bra .OpCCX1_Cpy8
+	nop
+#else
 	Cpy8 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC4X0:
 	Direct8_i CPY2
 	call_S9xGetWord Direct8_f
+#ifdef USE_ASM_SMALL
+	bra .OpCCX0_Cpy16
+	nop
+#else
 	Cpy16 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpCCX1:
 	Absolute8_i CPY
 	call_S9xGetByte Absolute8_f
+#ifdef USE_ASM_SMALL
+.OpCCX1_Cpy8:
+#endif
 	Cpy8 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpCCX0:
 	Absolute8_i CPY2
 	call_S9xGetWord Absolute8_f
+#ifdef USE_ASM_SMALL
+.OpCCX0_Cpy16:
+#endif
 	Cpy16 ABS
 
 /* DEC */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op3AM1:
 	extu.b A,r0
 #ifdef VAR_CYCLES
@@ -740,6 +1595,9 @@ Op3AM1:
 	or r0,A
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op3AM0:
 	add #-1,A
 #ifdef VAR_CYCLES
@@ -754,189 +1612,342 @@ Op3AM0:
 #endif
 	Set16ZNjmp A
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC6M1:
 	Direct8 DEC
+#ifdef USE_ASM_SMALL
+	bra .OpDEM1_Dec8
+	nop
+#else
 	Dec8 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC6M0:
 	Direct8 DEC2
+#ifdef USE_ASM_SMALL
+	bra .OpDEM0_Dec16
+	nop
+#else
 	Dec16 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD6M1:
 	DirectIndexedX8 DEC
+#ifdef USE_ASM_SMALL
+	bra .OpDEM1_Dec8
+	nop
+#else
 	Dec8 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD6M0:
 	DirectIndexedX8 DEC2
+#ifdef USE_ASM_SMALL
+	bra .OpDEM0_Dec16
+	nop
+#else
 	Dec16 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpCEM1:
 	Absolute8 DEC
+#ifdef USE_ASM_SMALL
+	bra .OpDEM1_Dec8
+	nop
+#else
 	Dec8 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpCEM0:
 	Absolute8 DEC2
+#ifdef USE_ASM_SMALL
+	bra .OpDEM0_Dec16
+	nop
+#else
 	Dec16 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpDEM1:
 	AbsoluteIndexedX8 DEC
 
+#ifdef USE_ASM_SMALL
+.OpDEM1_Dec8:
+#endif
 	Dec8 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpDEM0:
 	AbsoluteIndexedX8 DEC2
+#ifdef USE_ASM_SMALL
+.OpDEM0_Dec16:
+#endif
 	Dec16 ABSX
 
 /* EOR */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op49M1:
 	Immediate8 EOR
 	Eor8 IMM
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op49M0:
 	Immediate16 EOR
 	Eor16 IMM
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op45M1:
 	Direct8_i EOR
 	call_S9xGetByte Direct8_f
 	Eor8 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op45M0:
 	Direct8_i EOR2
 	call_S9xGetWord Direct8_f
 	Eor16 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op55M1:
 	DirectIndexedX8_i EOR
 	call_S9xGetByte DirectIndexedX8_f
 	Eor8 DIX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op55M0:
 	DirectIndexedX8_i EOR2
 	call_S9xGetWord DirectIndexedX8_f
 	Eor16 DIX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op52M1:
 	DirectIndirect8_i EOR
 	call_S9xGetByte DirectIndirect8_f
 	Eor8 DI
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op52M0:
 	DirectIndirect8_i EOR2
 	call_S9xGetWord DirectIndirect8_f
 	Eor16 DI
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op41M1:
 	DirectIndexedIndirect8_i EOR
 	call_S9xGetByte DirectIndexedIndirect8_f
 	Eor8 DII
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op41M0:
 	DirectIndexedIndirect8_i EOR2
 	call_S9xGetWord DirectIndexedIndirect8_f
 	Eor16 DII
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op51M1:
 	DirectIndirectIndexed8_i EOR
 	call_S9xGetByte DirectIndirectIndexed8_f
 	Eor8 DIIY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op51M0:
 	DirectIndirectIndexed8_i EOR2
 	call_S9xGetWord DirectIndirectIndexed8_f
 	Eor16 DIIY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op47M1:
 	DirectIndirectLong8_i EOR
 	call_S9xGetByte DirectIndirectLong8_f
 	Eor8 DIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op47M0:
 	DirectIndirectLong8_i EOR2
 	call_S9xGetWord DirectIndirectLong8_f
 	Eor16 DIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op57M1:
 	DirectIndirectIndexedLong8_i EOR
 	call_S9xGetByte DirectIndirectIndexedLong8_f
 	Eor8 DIIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op57M0:
 	DirectIndirectIndexedLong8_i EOR2
 	call_S9xGetWord DirectIndirectIndexedLong8_f
 	Eor16 DIIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op4DM1:
 	Absolute8_i EOR
 	call_S9xGetByte Absolute8_f
 	Eor8 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op4DM0:
 	Absolute8_i EOR2
 	call_S9xGetWord Absolute8_f
 	Eor16 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op5DM1:
 	AbsoluteIndexedX8_i EOR
 	call_S9xGetByte AbsoluteIndexedX8_f
 	Eor8 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op5DM0:
 	AbsoluteIndexedX8_i EOR2
 	call_S9xGetWord AbsoluteIndexedX8_f
 	Eor16 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op59M1:
 	AbsoluteIndexedY8_i EOR
 	call_S9xGetByte AbsoluteIndexedY8_f
 	Eor8 ABSY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op59M0:
 	AbsoluteIndexedY8_i EOR2
 	call_S9xGetWord AbsoluteIndexedY8_f
 	Eor16 ABSY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op4FM1:
 	AbsoluteLong8_i EOR
 	call_S9xGetByte AbsoluteLong8_f
 	Eor8 ABSL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op4FM0:
 	AbsoluteLong8_i EOR2
 	call_S9xGetWord AbsoluteLong8_f
 	Eor16 ABSL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op5FM1:
 	AbsoluteLongIndexedX8_i EOR
 	call_S9xGetByte AbsoluteLongIndexedX8_f
 	Eor8 ALX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op5FM0:
 	AbsoluteLongIndexedX8_i EOR2
 	call_S9xGetWord AbsoluteLongIndexedX8_f
 	Eor16 ALX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op43M1:
 	StackRelative8_i EOR
 	call_S9xGetByte StackRelative8_f
 	Eor8 SREL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op43M0:
 	StackRelative8_i EOR2
 	call_S9xGetWord StackRelative8_f
 	Eor16 SREL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op53M1:
 	StackRelativeIndirectIndexed8_i EOR
 	call_S9xGetByte StackRelativeIndirectIndexed8_f
 	Eor8 SRII
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op53M0:
 	StackRelativeIndirectIndexed8_i EOR2
 	call_S9xGetWord StackRelativeIndirectIndexed8_f
 	Eor16 SRII
 
 /* INC */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op1AM1:
 	extu.b A,r0
 #ifdef VAR_CYCLES
@@ -954,6 +1965,9 @@ Op1AM1:
 	or r0,A
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op1AM0:
 	add #1,A
 #ifdef VAR_CYCLES
@@ -968,286 +1982,572 @@ Op1AM0:
 	extu.w A,A
 	Set16ZNjmp A
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE6M1:
 	Direct8 INC
+#ifdef USE_ASM_SMALL
+	bra .OpFEM1_Inc8
+	nop
+#else
 	Inc8 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE6M0:
 	Direct8 INC2
+#ifdef USE_ASM_SMALL
+	bra .OpFEM0_Inc16
+	nop
+#else
 	Inc16 DIR
+#endif
 	
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF6M1:
 	DirectIndexedX8 INC
+#ifdef USE_ASM_SMALL
+	bra .OpFEM1_Inc8
+	nop
+#else
 	Inc8 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF6M0:
 	DirectIndexedX8 INC2
+#ifdef USE_ASM_SMALL
+	bra .OpFEM0_Inc16
+	nop
+#else
 	Inc16 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpEEM1:
 	Absolute8 INC
+#ifdef USE_ASM_SMALL
+	bra .OpFEM1_Inc8
+	nop
+#else
 	Inc8 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpEEM0:
 	Absolute8 INC2
+#ifdef USE_ASM_SMALL
+	bra .OpFEM0_Inc16
+	nop
+#else
 	Inc16 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpFEM1:
 	AbsoluteIndexedX8 INC
+#ifdef USE_ASM_SMALL
+.OpFEM1_Inc8:
+#endif
 	Inc8 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpFEM0:
 	AbsoluteIndexedX8 INC2
+#ifdef USE_ASM_SMALL
+.OpFEM0_Inc16:
+#endif
 	Inc16 ABSX
 
 /* LDA */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA9M1:
 	Immediate8 LDA
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 IMM
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA9M0:
 	Immediate16 LDA
 	Lda16 IMM
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA5M1:
 	Direct8_i LDA
 	call_S9xGetByte Direct8_f
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA5M0:
 	Direct8_i LDA2
 	call_S9xGetWord Direct8_f
 	Lda16 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB5M1:
 	DirectIndexedX8_i LDA
 	call_S9xGetByte DirectIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB5M0:
 	DirectIndexedX8_i LDA2
 	call_S9xGetWord DirectIndexedX8_f
 	Lda16 DIX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB2M1:
 	DirectIndirect8_i LDA
 	call_S9xGetByte DirectIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 DI
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB2M0:
 	DirectIndirect8_i LDA2
 	call_S9xGetWord DirectIndirect8_f
 	Lda16 DI
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA1M1:
 	DirectIndexedIndirect8_i LDA
 	call_S9xGetByte DirectIndexedIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 DII
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA1M0:
 	DirectIndexedIndirect8_i LDA2
 	call_S9xGetWord DirectIndexedIndirect8_f
 	Lda16 DII
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB1M1:
 	DirectIndirectIndexed8_i LDA
 	call_S9xGetByte DirectIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 DIIY
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB1M0:
 	DirectIndirectIndexed8_i LDA2
 	call_S9xGetWord DirectIndirectIndexed8_f
 	Lda16 DIIY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA7M1:
 	DirectIndirectLong8_i LDA
 	call_S9xGetByte DirectIndirectLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 DIL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA7M0:
 	DirectIndirectLong8_i LDA2
 	call_S9xGetWord DirectIndirectLong8_f
 	Lda16 DIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB7M1:
 	DirectIndirectIndexedLong8_i LDA
 	call_S9xGetByte DirectIndirectIndexedLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 DIIL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB7M0:
 	DirectIndirectIndexedLong8_i LDA2
 	call_S9xGetWord DirectIndirectIndexedLong8_f
 	Lda16 DIIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpADM1:
 	Absolute8_i LDA
 	call_S9xGetByte Absolute8_f
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpADM0:
 	Absolute8_i LDA2
 	call_S9xGetWord Absolute8_f
 	Lda16 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpBDM1:
 	AbsoluteIndexedX8_i LDA
 	call_S9xGetByte AbsoluteIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 ABSX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpBDM0:
 	AbsoluteIndexedX8_i LDA2
 	call_S9xGetWord AbsoluteIndexedX8_f
 	Lda16 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB9M1:
 	AbsoluteIndexedY8_i LDA
 	call_S9xGetByte AbsoluteIndexedY8_f
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 ABSY
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB9M0:
 	AbsoluteIndexedY8_i LDA2
 	call_S9xGetWord AbsoluteIndexedY8_f
 	Lda16 ABSY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpAFM1:
 	AbsoluteLong8_i LDA
 	call_S9xGetByte AbsoluteLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 ABSL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpAFM0:
 	AbsoluteLong8_i LDA2
 	call_S9xGetWord AbsoluteLong8_f
 	Lda16 ABSL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpBFM1:
 	AbsoluteLongIndexedX8_i LDA
 	call_S9xGetByte AbsoluteLongIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 ALX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpBFM0:
 	AbsoluteLongIndexedX8_i LDA2
 	call_S9xGetWord AbsoluteLongIndexedX8_f
 	Lda16 ALX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA3M1:
 	StackRelative8_i LDA
 	call_S9xGetByte StackRelative8_f
+#ifdef USE_ASM_SMALL
+	bra .OpB3M1_Lda8
+	nop
+#else
 	Lda8 SREL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA3M0:
 	StackRelative8_i LDA2
 	call_S9xGetWord StackRelative8_f
 	Lda16 SREL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB3M1:
 	StackRelativeIndirectIndexed8_i LDA
 	call_S9xGetByte StackRelativeIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+.OpB3M1_Lda8:
+#endif
 	Lda8 SRII
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB3M0:
 	StackRelativeIndirectIndexed8_i LDA2
 	call_S9xGetWord StackRelativeIndirectIndexed8_f
 	Lda16 SRII
 
 /* LDX */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA2X1:
 	Immediate8 LDX
 	Ldx8 IMM
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA2X0:
 	Immediate16 LDX
 	Ldx16 IMM
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA6X1:
 	Direct8_i LDX
 	call_S9xGetByte Direct8_f
 	Ldx8 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA6X0:
 	Direct8_i LDX2
 	call_S9xGetWord Direct8_f
 	Ldx16 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB6X1:
 	DirectIndexedY8_i LDX
 	call_S9xGetByte DirectIndexedY8_f
 	Ldx8 DIY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB6X0:
 	DirectIndexedY8_i LDX2
 	call_S9xGetWord DirectIndexedY8_f
 	Ldx16 DIY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpAEX1:
 	Absolute8_i LDX
 	call_S9xGetByte Absolute8_f
 	Ldx8 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpAEX0:
 	Absolute8_i LDX2
 	call_S9xGetWord Absolute8_f
 	Ldx16 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpBEX1:
 	AbsoluteIndexedY8_i LDX
 	call_S9xGetByte AbsoluteIndexedY8_f
 	Ldx8 ABSY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpBEX0:
 	AbsoluteIndexedY8_i LDX2
 	call_S9xGetWord AbsoluteIndexedY8_f
 	Ldx16 ABSY
 
 /* LDY */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA0X1:
 	Immediate8 LDY
 	Ldy8 IMM
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA0X0:
 	Immediate16 LDY
 	Ldy16 IMM
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA4X1:
 	Direct8_i LDY
 	call_S9xGetByte Direct8_f
 	Ldy8 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA4X0:
 	Direct8_i LDY2
 	call_S9xGetWord Direct8_f
 	Ldy16 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB4X1:
 	DirectIndexedX8_i LDY
 	call_S9xGetByte DirectIndexedX8_f
 	Ldy8 DIX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB4X0:
 	DirectIndexedX8_i LDY2
 	call_S9xGetWord DirectIndexedX8_f
 	Ldy16 DIX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpACX1:
 	Absolute8_i LDY
 	call_S9xGetByte Absolute8_f
 	Ldy8 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpACX0:
 	Absolute8_i LDY2
 	call_S9xGetWord Absolute8_f
 	Ldy16 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpBCX1:
 	AbsoluteIndexedX8_i LDY
 	call_S9xGetByte AbsoluteIndexedX8_f
 	Ldy8 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpBCX0:
 	AbsoluteIndexedX8_i LDY2
 	call_S9xGetWord AbsoluteIndexedX8_f
 	Ldy16 ABSX
 
 /* LSR */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op4AM1:
 	extu.b A,r1
 	sub r1,A
@@ -1263,6 +2563,9 @@ Op4AM1:
 	or r1,A
 	SetZNjmp r1
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op4AM0:
 	extu.w A,A
 #ifdef VAR_CYCLES
@@ -1276,188 +2579,341 @@ Op4AM0:
 .Lsr16Carry:
 	Set16ZNjmp A
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op46M1:
 	Direct8 LSR
+#ifdef USE_ASM_SMALL
+	bra .Op5EM1_Lsr8
+	nop
+#else
 	Lsr8 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op46M0:
 	Direct8 LSR2
+#ifdef USE_ASM_SMALL
+	bra .Op5EM0_Lsr16
+	nop
+#else
 	Lsr16 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op56M1:
 	DirectIndexedX8 LSR
+#ifdef USE_ASM_SMALL
+	bra .Op5EM1_Lsr8
+	nop
+#else
 	Lsr8 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op56M0:
 	DirectIndexedX8 LSR2
+#ifdef USE_ASM_SMALL
+	bra .Op5EM0_Lsr16
+	nop
+#else
 	Lsr16 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op4EM1:
 	Absolute8 LSR
+#ifdef USE_ASM_SMALL
+	bra .Op5EM1_Lsr8
+	nop
+#else
 	Lsr8 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op4EM0:
 	Absolute8 LSR2
+#ifdef USE_ASM_SMALL
+	bra .Op5EM0_Lsr16
+	nop
+#else
 	Lsr16 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op5EM1:
 	AbsoluteIndexedX8 LSR
+#ifdef USE_ASM_SMALL
+.Op5EM1_Lsr8:
+#endif
 	Lsr8 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op5EM0:
 	AbsoluteIndexedX8 LSR2
+#ifdef USE_ASM_SMALL
+.Op5EM0_Lsr16:
+#endif
 	Lsr16 ABSX
 
 /* ORA */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op09M1:
 	Immediate8 ORA
 	Ora8 IMM
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op09M0:
 	Immediate16 ORA
 	Ora16 IMM
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op05M1:
 	Direct8_i ORA
 	call_S9xGetByte Direct8_f
 	Ora8 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op05M0:
 	Direct8_i ORA2
 	call_S9xGetWord Direct8_f
 	Ora16 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op15M1:
 	DirectIndexedX8_i ORA
 	call_S9xGetByte DirectIndexedX8_f
 	Ora8 DIX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op15M0:
 	DirectIndexedX8_i ORA2
 	call_S9xGetWord DirectIndexedX8_f
 	Ora16 DIX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op12M1:
 	DirectIndirect8_i ORA
 	call_S9xGetByte DirectIndirect8_f
 	Ora8 DI
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op12M0:
 	DirectIndirect8_i ORA2
 	call_S9xGetWord DirectIndirect8_f
 	Ora16 DI
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op01M1:
 	DirectIndexedIndirect8_i ORA
 	call_S9xGetByte DirectIndexedIndirect8_f
 	Ora8 DII
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op01M0:
 	DirectIndexedIndirect8_i ORA2
 	call_S9xGetWord DirectIndexedIndirect8_f
 	Ora16 DII
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op11M1:
 	DirectIndirectIndexed8_i ORA
 	call_S9xGetByte DirectIndirectIndexed8_f
 	Ora8 DIIY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op11M0:
 	DirectIndirectIndexed8_i ORA2
 	call_S9xGetWord DirectIndirectIndexed8_f
 	Ora16 DIIY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op07M1:
 	DirectIndirectLong8_i ORA
 	call_S9xGetByte DirectIndirectLong8_f
 	Ora8 DIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op07M0:
 	DirectIndirectLong8_i ORA2
 	call_S9xGetWord DirectIndirectLong8_f
 	Ora16 DIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op17M1:
 	DirectIndirectIndexedLong8_i ORA
 	call_S9xGetByte DirectIndirectIndexedLong8_f
 	Ora8 DIIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op17M0:
 	DirectIndirectIndexedLong8_i ORA2
 	call_S9xGetWord DirectIndirectIndexedLong8_f
 	Ora16 DIIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op0DM1:
 	Absolute8_i ORA
 	call_S9xGetByte Absolute8_f
 	Ora8 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op0DM0:
 	Absolute8_i ORA2
 	call_S9xGetWord Absolute8_f
 	Ora16 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op1DM1:
 	AbsoluteIndexedX8_i ORA
 	call_S9xGetByte AbsoluteIndexedX8_f
 	Ora8 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op1DM0:
 	AbsoluteIndexedX8_i ORA2
 	call_S9xGetWord AbsoluteIndexedX8_f
 	Ora16 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op19M1:
 	AbsoluteIndexedY8_i ORA
 	call_S9xGetByte AbsoluteIndexedY8_f
 	Ora8 ABSY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op19M0:
 	AbsoluteIndexedY8_i ORA2
 	call_S9xGetWord AbsoluteIndexedY8_f
 	Ora16 ABSY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op0FM1:
 	AbsoluteLong8_i ORA
 	call_S9xGetByte AbsoluteLong8_f
 	Ora8 ABSL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op0FM0:
 	AbsoluteLong8_i ORA2
 	call_S9xGetWord AbsoluteLong8_f
 	Ora16 ABSL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op1FM1:
 	AbsoluteLongIndexedX8_i ORA
 	call_S9xGetByte AbsoluteLongIndexedX8_f
 	Ora8 ALX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op1FM0:
 	AbsoluteLongIndexedX8_i ORA2
 	call_S9xGetWord AbsoluteLongIndexedX8_f
 	Ora16 ALX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op03M1:
 	StackRelative8_i ORA
 	call_S9xGetByte StackRelative8_f
 	Ora8 SREL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op03M0:
 	StackRelative8_i ORA2
 	call_S9xGetWord StackRelative8_f
 	Ora16 SREL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op13M1:
 	StackRelativeIndirectIndexed8_i ORA
 	call_S9xGetByte StackRelativeIndirectIndexed8_f
 	Ora8 SRII
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op13M0:
 	StackRelativeIndirectIndexed8_i ORA2
 	call_S9xGetWord StackRelativeIndirectIndexed8_f
 	Ora16 SRII
 
 /* ROL */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op2AM1:
 	GetCarry
 #ifdef VAR_CYCLES
@@ -1477,6 +2933,9 @@ Op2AM1:
 .Rol8Carry:
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op2AM0:
 	GetCarry
 #ifdef VAR_CYCLES
@@ -1493,39 +2952,102 @@ Op2AM0:
 .Rol16Carry:	
 	Set16ZNjmp A
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op26M1:
 	Direct8 ROL
+#ifdef USE_ASM_SMALL
+	bra .Op3EM1_Rol8
+	nop
+#else
 	Rol8 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op26M0:
 	Direct8 ROL2
+#ifdef USE_ASM_SMALL
+	bra .Op3EM0_Rol16
+	nop
+#else
 	Rol16 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op36M1:
 	DirectIndexedX8 ROL
+#ifdef USE_ASM_SMALL
+	bra .Op3EM1_Rol8
+	nop
+#else
 	Rol8 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op36M0:
 	DirectIndexedX8 ROL2
+#ifdef USE_ASM_SMALL
+	bra .Op3EM0_Rol16
+	nop
+#else
 	Rol16 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op2EM1:
 	Absolute8 ROL
+#ifdef USE_ASM_SMALL
+	bra .Op3EM1_Rol8
+	nop
+#else
 	Rol8 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op2EM0:
 	Absolute8 ROL2
+#ifdef USE_ASM_SMALL
+	bra .Op3EM0_Rol16
+	nop
+#else
 	Rol16 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op3EM1:
 	AbsoluteIndexedX8 ROL
+#ifdef USE_ASM_SMALL
+.Op3EM1_Rol8:
+#endif
 	Rol8 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op3EM0:
 	AbsoluteIndexedX8 ROL2
+#ifdef USE_ASM_SMALL
+.Op3EM0_Rol16:
+#endif
 	Rol16 ABSX
 
 /* ROR */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op6AM1:
 	mov #1,r1
 #ifdef VAR_CYCLES
@@ -1545,6 +3067,9 @@ Op6AM1:
 	or r0,A
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op6AM0:
 	mov #1,r1
 #ifdef VAR_CYCLES
@@ -1562,418 +3087,917 @@ Op6AM0:
 .Ror16Carry:	
 	Set16ZNjmp A
 	
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op66M1:
 	Direct8 ROR
+#ifdef USE_ASM_SMALL
+	bra .Op7EM1_Ror8
+	nop
+#else
 	Ror8 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op66M0:
 	Direct8 ROR2
+#ifdef USE_ASM_SMALL
+	bra .Op7EM0_Ror16
+	nop
+#else
 	Ror16 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op76M1:
 	DirectIndexedX8 ROR
+#ifdef USE_ASM_SMALL
+	bra .Op7EM1_Ror8
+	nop
+#else
 	Ror8 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op76M0:
 	DirectIndexedX8 ROR2
+#ifdef USE_ASM_SMALL
+	bra .Op7EM0_Ror16
+	nop
+#else
 	Ror16 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op6EM1:
 	Absolute8 ROR
+#ifdef USE_ASM_SMALL
+	bra .Op7EM1_Ror8
+	nop
+#else
 	Ror8 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op6EM0:
 	Absolute8 ROR2
+#ifdef USE_ASM_SMALL
+	bra .Op7EM0_Ror16
+	nop
+#else
 	Ror16 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op7EM1:
 	AbsoluteIndexedX8 ROR
+#ifdef USE_ASM_SMALL
+.Op7EM1_Ror8:
+#endif
 	Ror8 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op7EM0:
 	AbsoluteIndexedX8 ROR2
+#ifdef USE_ASM_SMALL
+.Op7EM0_Ror16:
+#endif
 	Ror16 ABSX
 
 /* SBC */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE9M1:
 	Immediate8 SBC
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 IMM
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE9M0:
 	Immediate16 SBC
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 IMM
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE5M1:
 	Direct8_i SBC
 	call_S9xGetByte Direct8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE5M0:
 	Direct8_i SBC2
 	call_S9xGetWord Direct8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF5M1:
 	DirectIndexedX8_i SBC
 	call_S9xGetByte DirectIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF5M0:
 	DirectIndexedX8_i SBC2
 	call_S9xGetWord DirectIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 DIX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF2M1:
 	DirectIndirect8_i SBC
 	call_S9xGetByte DirectIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 DI
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF2M0:
 	DirectIndirect8_i SBC2
 	call_S9xGetWord DirectIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 DI
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE1M1:
 	DirectIndexedIndirect8_i SBC
 	call_S9xGetByte DirectIndexedIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 DII
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE1M0:
 	DirectIndexedIndirect8_i SBC2
 	call_S9xGetWord DirectIndexedIndirect8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 DII
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF1M1:
 	DirectIndirectIndexed8_i SBC
 	call_S9xGetByte DirectIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 DIIY
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF1M0:
 	DirectIndirectIndexed8_i SBC2
 	call_S9xGetWord DirectIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 DIIY
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE7M1:
 	DirectIndirectLong8_i SBC
 	call_S9xGetByte DirectIndirectLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 DIL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE7M0:
 	DirectIndirectLong8_i SBC2
 	call_S9xGetWord DirectIndirectLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 DIL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF7M1:
 	DirectIndirectIndexedLong8_i SBC
 	call_S9xGetByte DirectIndirectIndexedLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 DIIL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF7M0:
 	DirectIndirectIndexedLong8_i SBC2
 	call_S9xGetWord DirectIndirectIndexedLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 DIIL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpEDM1:
 	Absolute8_i SBC
 	call_S9xGetByte Absolute8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpEDM0:
 	Absolute8_i SBC2
 	call_S9xGetWord Absolute8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 ABS
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpFDM1:
 	AbsoluteIndexedX8_i SBC
 	call_S9xGetByte AbsoluteIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 ABSX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpFDM0:
 	AbsoluteIndexedX8_i SBC2
 	call_S9xGetWord AbsoluteIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 ABSX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF9M1:
 	AbsoluteIndexedY8_i SBC
 	call_S9xGetByte AbsoluteIndexedY8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 ABSY
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF9M0:
 	AbsoluteIndexedY8_i SBC2
 	call_S9xGetWord AbsoluteIndexedY8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 ABSY
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpEFM1:
 	AbsoluteLong8_i SBC
 	call_S9xGetByte AbsoluteLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 ABSL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpEFM0:
 	AbsoluteLong8_i SBC2
 	call_S9xGetWord AbsoluteLong8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 ABSL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpFFM1:
 	AbsoluteLongIndexedX8_i SBC
 	call_S9xGetByte AbsoluteLongIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 ALX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpFFM0:
 	AbsoluteLongIndexedX8_i SBC2
 	call_S9xGetWord AbsoluteLongIndexedX8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 ALX
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE3M1:
 	StackRelative8_i SBC
 	call_S9xGetByte StackRelative8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M1_Sbc8
+	nop
+#else
 	Sbc8 SREL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE3M0:
 	StackRelative8_i SBC2
 	call_S9xGetWord StackRelative8_f
+#ifdef USE_ASM_SMALL
+	bra .OpF3M0_Sbc16
+	nop
+#else
 	Sbc16 SREL
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF3M1:
 	StackRelativeIndirectIndexed8_i SBC
 	call_S9xGetByte StackRelativeIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+.OpF3M1_Sbc8:
+#endif
 	Sbc8 SRII
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF3M0:
 	StackRelativeIndirectIndexed8_i SBC2
 	call_S9xGetWord StackRelativeIndirectIndexed8_f
+#ifdef USE_ASM_SMALL
+.OpF3M0_Sbc16:
+#endif
 	Sbc16 SRII
 
 /* STA */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op85M1:
 	Direct8 STA
 	Sta8 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op85M0:
 	Direct8 STA2
 	Sta16 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op95M1:
 	DirectIndexedX8 STA
 	Sta8 DIX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op95M0:
 	DirectIndexedX8 STA2
 	Sta16 DIX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op92M1:
 	DirectIndirect8 STA
 	Sta8 DI
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op92M0:
 	DirectIndirect8 STA2
 	Sta16 DI
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op81M1:
 	DirectIndexedIndirect8 STA
 	Sta8 DII
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op81M0:
 	DirectIndexedIndirect8 STA2
 	Sta16 DII
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op91M1:
 	DirectIndirectIndexed8 STA
 	Sta8 DIIY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op91M0:
 	DirectIndirectIndexed8 STA2
 	Sta16 DIIY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op87M1:
 	DirectIndirectLong8 STA
 	Sta8 DIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op87M0:
 	DirectIndirectLong8 STA2
 	Sta16 DIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op97M1:
 	DirectIndirectIndexedLong8 STA
 	Sta8 DIIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op97M0:
 	DirectIndirectIndexedLong8 STA2
 	Sta16 DIIL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op8DM1:
 	Absolute8 STA
 	Sta8 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op8DM0:
 	Absolute8 STA
 	Sta16 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op9DM1:
 	AbsoluteIndexedX8 STA
 	Sta8 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op9DM0:
 	AbsoluteIndexedX8 STA2
 	Sta16 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op99M1:
 	AbsoluteIndexedY8 STA
 	Sta8 ABSY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op99M0:
 	AbsoluteIndexedY8 STA2
 	Sta16 ABSY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op8FM1:
 	AbsoluteLong8 STA
 	Sta8 ABSL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op8FM0:
 	AbsoluteLong8 STA2
 	Sta16 ABSL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op9FM1:
 	AbsoluteLongIndexedX8 STA
 	Sta8 ALX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op9FM0:
 	AbsoluteLongIndexedX8 STA2
 	Sta16 ALX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op83M1:
 	StackRelative8 STA
 	Sta8 SREL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op83M0:
 	StackRelative8 STA2
 	Sta16 SREL
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op93M1:
 	StackRelativeIndirectIndexed8 STA
 	Sta8 SRII
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op93M0:
 	StackRelativeIndirectIndexed8 STA2
 	Sta16 SRII
 
 /* STX */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op86X1:
 	Direct8 STX
 	Stx8 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op86X0:
 	Direct8 STX2
 	Stx16 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op96X1:
 	DirectIndexedY8 STX
 	Stx8 DIY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op96X0:
 	DirectIndexedY8 STX2
 	Stx16 DIY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op8EX1:
 	Absolute8 STX
 	Stx8 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op8EX0:
 	Absolute8 STX2
 	Stx16 ABS
 
 /* STY */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op84X1:
 	Direct8 STY
 	Sty8 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op84X0:
 	Direct8 STY2
 	Sty16 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op94X1:
 	DirectIndexedX8 STY
 	Sty8 DIX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op94X0:
 	DirectIndexedX8 STY2
 	Sty16 DIX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op8CX1:
 	Absolute8 STY
 	Sty8 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op8CX0:
 	Absolute8 STY2
 	Sty16 ABS
 
 /* STZ */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op64M1:
 	Direct8 STZ
 	Stz8 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op64M0:
 	Direct8 STZ2
 	Stz16 DIR
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op74M1:
 	DirectIndexedX8 STZ
 	Stz8 DIX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op74M0:
 	DirectIndexedX8 STZ2
 	Stz16 DIX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op9CM1:
 	Absolute8 STZ
 	Stz8 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op9CM0:
 	Absolute8 STZ2
 	Stz16 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op9EM1:
 	AbsoluteIndexedX8 STZ
 	Stz8 ABSX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op9EM0:
 	AbsoluteIndexedX8 STZ2
 	Stz16 ABSX
 
 /* TRB */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op14M1:
 	Direct8 TRB
+#ifdef USE_ASM_SMALL
+	bra .Op1CM1_Trb8
+	nop
+#else
 	Trb8 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op14M0:
 	Direct8 TRB2
+#ifdef USE_ASM_SMALL
+	bra .Op1CM0_Trb16
+	nop
+#else
 	Trb16 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op1CM1:
 	Absolute8 TRB
+#ifdef USE_ASM_SMALL
+.Op1CM1_Trb8:
+#endif
 	Trb8 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op1CM0:
 	Absolute8 TRB2
+#ifdef USE_ASM_SMALL
+.Op1CM0_Trb16:
+#endif
 	Trb16 ABS
 
 /* TSB */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op04M1:
 	Direct8 TSB
+#ifdef USE_ASM_SMALL
+	bra .Op04M1_Tsb8
+	nop
+#else
 	Tsb8 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op04M0:
 	Direct8 TSB2
+#ifdef USE_ASM_SMALL
+	bra .Op0CM0_Tsb16
+	nop
+#else
 	Tsb16 DIR
+#endif
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op0CM1:
 	Absolute8 TSB
+#ifdef USE_ASM_SMALL
+.Op04M1_Tsb8:
+#endif
 	Tsb8 ABS
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op0CM0:
 	Absolute8 TSB2
+#ifdef USE_ASM_SMALL
+.Op0CM0_Tsb16:
+#endif
 	Tsb16 ABS
 
 /* BCC */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op90:
 	Relative
 	BranchCheck0 BCC
@@ -1987,12 +4011,20 @@ Op90:
 	mov.l PCBase,r3
 	extu.w r4,PC
 	add r3,PC
+#ifdef USE_ASM_SMALL
+	bra .Op70_CPUShutdown
+	nop
+#else
 	CPUShutdown BCC
+#endif
 .BCC_EXIT:
 	jmp @r13
 	nop
 
 /* BCS */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB0:
 	Relative
 	BranchCheck0 BCS
@@ -2006,12 +4038,20 @@ OpB0:
 	mov.l PCBase,r3
 	extu.w r4,PC
 	add r3,PC
+#ifdef USE_ASM_SMALL
+	bra .Op70_CPUShutdown
+	nop
+#else
 	CPUShutdown BCS
+#endif
 .BCS_EXIT:
 	jmp @r13
 	nop
 
 /* BEQ */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF0:
 	Relative
 	BranchCheck2 BEQ
@@ -2026,12 +4066,20 @@ OpF0:
 	mov.l PCBase,r3
 	extu.w r4,PC
 	add r3,PC
+#ifdef USE_ASM_SMALL
+	bra .Op70_CPUShutdown
+	nop
+#else
 	CPUShutdown BEQ
+#endif
 .BEQ_EXIT:
 	jmp @r13
 	nop
 
 /* BMI */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op30:
 	Relative
 	BranchCheck1 BMI
@@ -2045,12 +4093,20 @@ Op30:
 	mov.l PCBase,r3
 	extu.w r4,PC
 	add r3,PC
+#ifdef USE_ASM_SMALL
+	bra .Op70_CPUShutdown
+	nop
+#else
 	CPUShutdown BMI
+#endif
 .BMI_EXIT:
 	jmp @r13
 	nop
 
 /* BNE */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD0:
 	Relative
 	BranchCheck1 BNE
@@ -2065,12 +4121,20 @@ OpD0:
 	mov.l PCBase,r3
 	extu.w r4,PC
 	add r3,PC
+#ifdef USE_ASM_SMALL
+	bra .Op70_CPUShutdown
+	nop
+#else
 	CPUShutdown BNE
+#endif
 .BNE_EXIT:
 	jmp @r13
 	nop
 
 /* BPL */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op10:
 	Relative
 	BranchCheck1 BPL
@@ -2084,12 +4148,20 @@ Op10:
 	mov.l PCBase,r3
 	extu.w r4,PC
 	add r3,PC
+#ifdef USE_ASM_SMALL
+	bra .Op70_CPUShutdown
+	nop
+#else
 	CPUShutdown BPL
+#endif
 .BPL_EXIT:
 	jmp @r13
 	nop
 
 /* BRA */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op80:
 	Relative
 #ifdef VAR_CYCLES
@@ -2103,6 +4175,9 @@ Op80:
 	add r3,PC
 
 /* BVC */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op50:
 	Relative
 	BranchCheck0 BVC
@@ -2117,12 +4192,20 @@ Op50:
 	mov.l PCBase,r3
 	extu.w r4,PC
 	add r3,PC
+#ifdef USE_ASM_SMALL
+	bra .Op70_CPUShutdown
+	nop
+#else
 	CPUShutdown BVC
+#endif
 .BVC_EXIT:
 	jmp @r13
 	nop
 
 /* BVS */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op70:
 	Relative
 	BranchCheck0 BVS
@@ -2137,12 +4220,18 @@ Op70:
 	mov.l PCBase,r3
 	extu.w r4,PC
 	add r3,PC
+#ifdef USE_ASM_SMALL
+.Op70_CPUShutdown:
+#endif
 	CPUShutdown BVS
 .BVS_EXIT:
 	jmp @r13
 	nop
 	
 /* BRL */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op82:
 	RelativeLong BRL
 	extu.w r4,r4
@@ -2153,6 +4242,9 @@ Op82:
 	Xlink
 
 /* CLC */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op18:
 	mov #~Carry,r0
 #ifdef VAR_CYCLES
@@ -2162,6 +4254,9 @@ Op18:
 	and r0,FLAGS
 
 /* CLD */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD8:
 	mov #~Decimal,r0
 #ifdef VAR_CYCLES
@@ -2171,12 +4266,21 @@ OpD8:
 	and r0,FLAGS
 
 /* CLI */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op58:
 	mov #~IRQ,r2
 #ifdef VAR_CYCLES
 	add #6,CYCLES
 #endif
+#ifndef USE_ASM_R12
+	add #16,r11
+#endif
 	mov.b IRQActive,r0
+#ifndef USE_ASM_R12
+	add #-16,r11
+#endif
 	tst r0,r0
 	bt .CLI_EXIT
 	/* XXX: test for Settings.DisableIRQ */
@@ -2188,6 +4292,9 @@ Op58:
 	and r2,FLAGS
 
 /* CLV */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpB8:
 	mov #~Overflow,r0
 #ifdef VAR_CYCLES
@@ -2197,6 +4304,9 @@ OpB8:
 	and r0,FLAGS
 
 /* DEX */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpCAX1:
 #ifdef VAR_CYCLES
 	add #6,CYCLES
@@ -2212,6 +4322,9 @@ OpCAX1:
 	mov.b r0,XL
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpCAX0:
 #ifdef VAR_CYCLES
 	add #6,CYCLES
@@ -2228,6 +4341,9 @@ OpCAX0:
 	Set16ZNjmp r0
 
 /* DEY */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op88X1:
 #ifdef VAR_CYCLES
 	add #6,CYCLES
@@ -2243,6 +4359,9 @@ Op88X1:
 	mov.b r0,YL
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op88X0:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2259,6 +4378,9 @@ Op88X0:
 	Set16ZNjmp r0
 
 /* INX */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE8X1:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2274,6 +4396,9 @@ OpE8X1:
 	mov.b r0, XL
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE8X0:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2290,6 +4415,9 @@ OpE8X0:
 	Set16ZNjmp r0
 
 /* INY */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC8X1:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2305,6 +4433,9 @@ OpC8X1:
 	mov.b r0, YL
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC8X0:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2321,6 +4452,9 @@ OpC8X0:
 	Set16ZNjmp r0
 
 /* NOP */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpEA:
 	jmp @r13
 #ifdef VAR_CYCLES
@@ -2330,23 +4464,35 @@ OpEA:
 #endif
 
 /* PEA */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF4:
 	Immediate16 PEA
 	PushWordjmp PEA
 
 /* PEI */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpD4:
 	DirectIndirect8 PEI
 	extu.w r4,r0
 	PushWordjmp PEI
 
 /* PER */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op62:
 	RelativeLong PER
 	extu.w r4,r0
 	PushWordjmp PER
 
 /* PHA */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op48M1:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2354,6 +4500,9 @@ Op48M1:
 	extu.b A,r0
 	PushBytejmp PHA
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op48M0:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2362,6 +4511,9 @@ Op48M0:
 	PushWordjmp PHA
 
 /* PHB */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op8B:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2374,6 +4526,9 @@ Op8B:
 	PushBytejmp PHB
 
 /* PHD */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op0B:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2382,6 +4537,9 @@ Op0B:
 	PushWordjmp PHD
 
 /* PHK */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op4B:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2394,6 +4552,9 @@ Op4B:
 	PushBytejmp PHK
 
 /* PHP */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op08:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2403,6 +4564,9 @@ Op08:
 	PushBytejmp PHP
 
 /* PHX */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpDAX1:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2410,6 +4574,9 @@ OpDAX1:
 	mov.b XL, r0
 	PushBytejmp PHX
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpDAX0:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2418,6 +4585,9 @@ OpDAX0:
 	PushWordjmp PHX
 
 /* PHY */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op5AX1:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2425,6 +4595,9 @@ Op5AX1:
 	mov.b YL, r0
 	PushBytejmp PHY
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op5AX0:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2433,6 +4606,9 @@ Op5AX0:
 	PushWordjmp PHY
 
 /* PLA */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op68M1:
 #ifdef VAR_CYCLES
 	add #12, CYCLES
@@ -2443,6 +4619,9 @@ Op68M1:
 	sub r1,A
 	SetZNjmp A
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op68M0:
 #ifdef VAR_CYCLES
 	add #12, CYCLES
@@ -2452,6 +4631,9 @@ Op68M0:
 	Set16ZNjmp A
 
 /* PLB */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpAB:
 #ifdef VAR_CYCLES
 	add #12, CYCLES
@@ -2469,6 +4651,9 @@ OpAB:
 	SetZNjmp r0
 
 /* PLD */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op2B:
 #ifdef VAR_CYCLES
 	add #12, CYCLES
@@ -2478,6 +4663,9 @@ Op2B:
 	Set16ZNjmp r0
 	
 /* PLP */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op28:
 #ifdef VAR_CYCLES
 	add #12, CYCLES
@@ -2493,11 +4681,19 @@ Op28:
 	mov.b r0,XH
 	mov.b r0,YH
 .PLP16:
+#ifdef USE_ASM_SMALL
+	bra .RTI16
+	nop
+#else
 	S9xUnpackStatus PLP
 	S9xFixCycles PLP
 	CheckForIrqjmp PLP /* Removed in 1.39. See asmops.h */
+#endif
 
 /* PLX */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpFAX1:
 #ifdef VAR_CYCLES
 	add #12, CYCLES
@@ -2506,6 +4702,9 @@ OpFAX1:
 	mov.b r0, XL
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpFAX0:
 #ifdef VAR_CYCLES
 	add #12, CYCLES
@@ -2515,6 +4714,9 @@ OpFAX0:
 	Set16ZNjmp r0
 
 /* PLY */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op7AX1:
 #ifdef VAR_CYCLES
 	add #12, CYCLES
@@ -2523,6 +4725,9 @@ Op7AX1:
 	mov.b r0, YL
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op7AX0:
 #ifdef VAR_CYCLES
 	add #12, CYCLES
@@ -2532,6 +4737,9 @@ Op7AX0:
 	Set16ZNjmp r0
 
 /* SEC */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op38:
 	mov #Carry,r0
 #ifdef VAR_CYCLES
@@ -2541,6 +4749,9 @@ Op38:
 	or r0,FLAGS
 
 /* SED */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpF8:
 	
 	mov #Decimal,r0
@@ -2551,6 +4762,9 @@ OpF8:
 	or r0,FLAGS
 
 /* SEI */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op78:
 	mov #IRQ,r0
 #ifdef VAR_CYCLES
@@ -2560,6 +4774,9 @@ Op78:
 	or r0,FLAGS
 
 /* TAX */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpAAX1:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2568,6 +4785,9 @@ OpAAX1:
 	mov.b r0, XL
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpAAX0:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2577,6 +4797,9 @@ OpAAX0:
 	Set16ZNjmp r0
 
 /* TAY */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA8X1:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2585,6 +4808,9 @@ OpA8X1:
 	mov.b r0, YL
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpA8X0:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2594,6 +4820,9 @@ OpA8X0:
 	Set16ZNjmp r0
 
 /* TCD */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op5B:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2603,6 +4832,9 @@ Op5B:
 	Set16ZNjmp r0
 
 /* TCS */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op1B:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2620,6 +4852,9 @@ Op1B:
 	nop
 
 /* TDC */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op7B:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2629,6 +4864,9 @@ Op7B:
 	Set16ZNjmp A
 
 /* TSC */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op3B:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2638,6 +4876,9 @@ Op3B:
 	Set16ZNjmp A
 
 /* TSX */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpBAX1:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2646,6 +4887,9 @@ OpBAX1:
 	mov.b r0, XL
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpBAX0:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2655,6 +4899,9 @@ OpBAX0:
 	Set16ZNjmp r0
 
 /* TXA */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op8AM1:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2666,6 +4913,9 @@ Op8AM1:
 	add r0,A
 	SetZNjmp A
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op8AM0:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2675,6 +4925,9 @@ Op8AM0:
 	Set16ZNjmp A
 
 /* TXS */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op9A:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2692,6 +4945,9 @@ Op9A:
 	nop
 
 /* TXY */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op9BX1:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2700,6 +4956,9 @@ Op9BX1:
 	mov.b r0, YL
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op9BX0:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2709,6 +4968,9 @@ Op9BX0:
 	Set16ZNjmp r0
 
 /* TYA */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op98M1:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2720,6 +4982,9 @@ Op98M1:
 	add r0,A
 	SetZNjmp A
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op98M0:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2729,6 +4994,9 @@ Op98M0:
 	Set16ZNjmp A
 
 /* TYX */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpBBX1:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2737,6 +5005,9 @@ OpBBX1:
 	mov.b r0, XL
 	SetZNjmp r0
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpBBX0:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2746,6 +5017,9 @@ OpBBX0:
 	Set16ZNjmp r0
 
 /* XCE */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpFB:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -2776,24 +5050,24 @@ OpFB:
 	mov.b r0, XH
 	mov.b r0, YH
 .XCE_NO_INDEX:
+#ifdef USE_ASM_SMALL
+	bra .SEP16
+	nop
+#else
 	S9xFixCycles XCE
 	jmp @r13
 	nop
+#endif
 
 	.align 2
 .emflag0:
 	.word	Emulation
 	.align 2
 
-Op00:
-#ifdef DEBUGGER
-	testb $TRACE_FLAG, Flags
-	je .BRK_NO_TRACE
-	pushl $.LC0
-	ccall S9xTraceMessage
-	addl $4,%esp
-.BRK_NO_TRACE:
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
 #endif
+Op00:
 	mov #1,r0
 #ifndef USE_ASM_R12
 	add #16,r11
@@ -2885,24 +5159,9 @@ Op00:
 .emflag:
 	.word	Emulation
 
-#ifdef DEBUGGER
-	.align 2
-.LC0:
-	.ascii	"*** BRK"
-	.byte 0
-#endif
-
 	.align 5
 .globl S9xOpcode_IRQ_r
 S9xOpcode_IRQ_r:
-#ifdef DEBUGGER
-	testb $TRACE_FLAG, Flags
-	je .IRQ_NO_TRACE
-	pushl $.LC1
-	ccall S9xTraceMessage
-	addl $4, %esp
-.IRQ_NO_TRACE:
-#endif
 	mov.w .emflag1,r0
 	sts.l pr,@-r15
 	tst r0,FLAGS16
@@ -3003,12 +5262,6 @@ S9xOpcode_IRQ_r:
 .emflag1:
 	.word	Emulation
 
-#ifdef DEBUGGER
-	.align 2
-.LC1:
-	.ascii	"*** IRQ"
-	.byte 0
-#endif
 	.align 2
 .FillRAM2:
 	.long FillRAM
@@ -3020,24 +5273,6 @@ S9xOpcode_IRQ_r:
 .globl S9xOpcode_NMI_r
 
 S9xOpcode_NMI_r:
-#if 0
-	PUSH_REGISTERS
-	sts.l pr,@-r15
-	mova .foofoo,r0
-	mov.l @r0+,r1
-	jsr @r1
-	mov r0,r4
-	lds.l @r15+,pr
-	POP_REGISTERS
-#endif
-#ifdef DEBUGGER
-	testb $TRACE_FLAG, Flags
-	je .NMI_NO_TRACE
-	pushl $.LC2
-	ccall S9xTraceMessage
-	addl $4, %esp
-.NMI_NO_TRACE:
-#endif
 	mov.w .emflag2,r0
 	sts.l pr,@-r15
 	tst r0,FLAGS16
@@ -3120,31 +5355,12 @@ S9xOpcode_NMI_r:
 .emflag2:
 	.word	Emulation
 
-#ifdef DEBUGGER
-	.align 2
-.LC2:
-	.ascii	"*** NMI"
-	.byte 0
-#endif
-
-#if 0
-	.align 2
-.foofoo:
-	.long _reportf
-	.ascii "[NMI]"
-	.byte 10,0
-#endif
 	.align 2
 	
-Op02:
-#ifdef DEBUGGER
-	testb $TRACE_FLAG, Flags
-	je .COP_NO_TRACE
-	pushl $.LC3
-	ccall S9xTraceMessage
-	addl $4,%esp
-.COP_NO_TRACE:
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
 #endif
+Op02:
 	mov.w .emflag25,r0
 	tst r0,FLAGS16
 	bf .COP_EMULATION
@@ -3227,15 +5443,11 @@ Op02:
 	.word	Emulation
 
 	
-#ifdef DEBUGGER
-	.align 2
-.LC3:
-	.ascii	"*** COP"
-	.byte 0
-#endif
-	
 	.align 2
 /* JML */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpDC:
 	AbsoluteIndirectLong8 JML
 	mov.l ICPU,r3
@@ -3252,6 +5464,9 @@ OpDC:
 #endif
 	Xlink
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op5C:
 	AbsoluteLong8 JML
 	mov.l ICPU,r3
@@ -3266,6 +5481,9 @@ Op5C:
 	Xlink
 
 /* JMP */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op4C:
 	Absolute8 JMP
 	mov.l ICPU,r3
@@ -3275,6 +5493,9 @@ Op4C:
 	or r0,r4
 	Xlink
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op6C:
 	AbsoluteIndirect8 JMP
 	mov.l ICPU,r3
@@ -3284,6 +5505,9 @@ Op6C:
 	or r0,r4
 	Xlink
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op7C:
 	AbsoluteIndexedIndirect8 JMP
 #ifdef VAR_CYCLES
@@ -3297,6 +5521,9 @@ Op7C:
 	Xlink
 
 /* JSL */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op22:
 #ifndef USE_REGISTER_AS_PB
 	mov.b PB, r0
@@ -3322,6 +5549,9 @@ Op22:
 	Xlink
 
 /* RTL */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op6B:
 #ifdef VAR_CYCLES
 	add #12, CYCLES
@@ -3345,6 +5575,9 @@ Op6B:
 	Xlink
 
 /* JSR ABS */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op20:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -3363,6 +5596,9 @@ Op20:
 	Xlink
 
 /* JSR ABS INDEXED INDIRECT */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpFC:
 #ifdef VAR_CYCLES
 	add #6, CYCLES
@@ -3381,6 +5617,9 @@ OpFC:
 	Xlink
 
 /* RTS */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op60:
 #ifdef VAR_CYCLES
 	add #6 * 3, CYCLES
@@ -3395,6 +5634,9 @@ Op60:
 	Xlink
 
 /* MVN */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op54X1:
 #ifdef VAR_CYCLES
 #ifdef USE_MEMORY_SPEED
@@ -3457,6 +5699,9 @@ Op54X1:
 	jmp @r13
 	nop
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op54X0:
 #ifdef VAR_CYCLES
 #ifdef USE_MEMORY_SPEED
@@ -3522,6 +5767,9 @@ Op54X0:
 	nop
 
 /* MVP */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op44X1:
 #ifdef VAR_CYCLES
 #ifdef USE_MEMORY_SPEED
@@ -3586,6 +5834,9 @@ Op44X1:
 	jmp @r13
 	nop
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op44X0:
 #ifdef VAR_CYCLES
 #ifdef USE_MEMORY_SPEED
@@ -3651,6 +5902,9 @@ Op44X0:
 	nop
 
 /* REP */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpC2:
 #ifdef VAR_CYCLES
 #ifdef USE_MEMORY_SPEED
@@ -3687,10 +5941,18 @@ OpC2:
 	mov.b r0,XH
 	mov.b r0,YH
 .REP16:
+#ifdef USE_ASM_SMALL
+	bra .Op40_FixCycles
+	nop
+#else
 	S9xFixCycles REP
 	CheckForIrqjmp REP /* Removed in 1.39. See asmops.h */
+#endif
 
 /* SEP */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpE2:
 #ifdef VAR_CYCLES
 #ifdef USE_MEMORY_SPEED
@@ -3737,6 +5999,9 @@ OpE2:
 
 
 /* XBA */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpEB:
 #ifdef VAR_CYCLES
 	add #12, CYCLES
@@ -3745,6 +6010,9 @@ OpEB:
 	SetZNjmp A
 
 /* RTI */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op40:
 #ifdef VAR_CYCLES
 	add #12, CYCLES
@@ -3790,7 +6058,13 @@ Op40:
 	mov.b r0,YH
 .RTI16:
 	S9xUnpackStatus RTI
+#ifdef USE_ASM_SMALL
+.Op40_FixCycles:
+#endif
 	S9xFixCycles RTI
+#ifdef USE_ASM_SMALL
+.Op40_CheckForIrqjmp:
+#endif
 	CheckForIrqjmp RTI /* Removed in 1.39. See asmops.h */
 
 	.align 2
@@ -3799,18 +6073,29 @@ Op40:
 
 	.align 2
 /* WAI */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpCB:
-#if 0
-	cmpb $0, IRQActive
-	je .L5334
+#ifdef USE_NO_WAIT_WHEN_IRQ
+#ifndef USE_ASM_R12
+	add #16,r11
+#endif
+	mov.b IRQActive,r0
+#ifndef USE_ASM_R12
+	add #-16,r11
+#endif
+	tst r0,r0
+	bf .OpCB_normal
+	jmp @r13
 #ifdef VAR_CYCLES
-	addl $12, CYCLES
+	add #12,CYCLES
 #else
-	addl $2, CYCLES
+	add #2,CYCLES
 #endif
-	jmp MainAsmLoop
-.L5334:
 #endif
+
+.OpCB_normal:
 	mov #1,r0
 	add #-1,PC
 #ifndef USE_ASM_R12
@@ -3856,14 +6141,6 @@ OpCB:
 	mov #0,r0
 	mov.b r0, CPUExecuting
 .WAITExecAPU:
-#ifdef DEBUGGER
-	testb $2,APUFlags
-	je .WAITNoAPUS9xTrace
-	STORE_REGISTERS
-	ccall S9xTraceAPU
-	LOAD_REGISTERS
-.WAITNoAPUS9xTrace:
-#endif
 #ifdef SPC700_C
 	mov.l IAPU,r1
 	SAVE_CYCLES
@@ -3926,6 +6203,9 @@ OpCB:
 	.align 2
 
 /* ??? */
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 OpDB:
 	mov.l Flags,r0
 	add #-1,PC
@@ -3933,6 +6213,9 @@ OpDB:
 	jmp @r13
 	mov.l r0,Flags
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#endif
 Op42:
 	jmp @r13
 	nop
@@ -3940,7 +6223,11 @@ Op42:
 .globl _S9xOpcodesM1X1
 .globl _S9xOpcodesE1
 
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#else
 	.align 2
+#endif
 _S9xOpcodesM1X1:
 _S9xOpcodesE1:
 	.long Op00
@@ -4201,7 +6488,11 @@ _S9xOpcodesE1:
 	.long OpFFM1
 
 .globl _S9xOpcodesM1X0
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#else
 	.align 2
+#endif
 _S9xOpcodesM1X0:
 	.long Op00
 	.long Op01M1
@@ -4461,7 +6752,11 @@ _S9xOpcodesM1X0:
 	.long OpFFM1
 
 .globl _S9xOpcodesM0X0
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#else
 	.align 2
+#endif
 _S9xOpcodesM0X0:
 	.long Op00
 	.long Op01M0
@@ -4721,7 +7016,11 @@ _S9xOpcodesM0X0:
 	.long OpFFM0
 
 .globl _S9xOpcodesM0X1
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#else
 	.align 2
+#endif
 _S9xOpcodesM0X1:
 	.long Op00
 	.long Op01M0
@@ -4980,162 +7279,9 @@ _S9xOpcodesM0X1:
 	.long OpFEM0
 	.long OpFFM0
 
-	.align 2
-
-#ifdef USE_ASM_R5
-.globl _DataWatch
-TraceFunc:
-	mov.l r13,@-r15
-	sts.l pr,@-r15
-	mov.l r12,@-r15
-	mov.l r11,@-r15
-	mov.l r14,@-r15
-	mov.l r10,@-r15
-	mov.l r9,@-r15
-	mov.l r8,@-r15
-	SETUP_PREDEF
-	LOAD_REGISTERS CPUTrace
-
-	mov.w DD,r0
-	cmp/eq #1,r0
-	bf 4f
-
-	mov FLAGS16,r7
-	mov.l PCBase,r0
-	mov PC,r1
-	sub r0,r1
-	mov.l ICPU,r0
-	mov.l @(16,r0),r0
-	add r0,r1
-	mov r1,r6
-	mova .zfoorpt,r0
-	mov.l @r0+,r1
-	mov r4,r5
-	jsr @r1
-	mov r0,r4
-4:	
-	mov.l @r15+,r8
-	mov.l @r15+,r9
-	mov.l @r15+,r10
-	mov.l @r15+,r14
-	mov.l @r15+,r11
-	mov.l @r15+,r12
-	lds.l @r15+,pr
-	rts
-	mov.l @r15+,r13
-
-	MISC
-
-	.align 2
-.zfoorpt:
-	.long _reportf
-	.ascii "@%x: PC = %x, flags = %x\n"
-	.byte 0
-
-	.align 2
-
-
-
-_DataWatch:
-	mova	exc_handler,r0
-	tst	r4,r4
-	.word	0x40fa		! ldc	r0,dbr
-	bt	trace_off
-	
-trace_on:
-	mov.l   .DDReg,r0
-	mov.l	ubcbase,r1
-	mov.l	r0,@r1
-	mov	#0,r0
-	mov.b	r0,@(4,r1)
-	add	#8,r1
-	mov.w	crval,r0
-	mov.w	r0,@(0x18, r1)
-	mov	#0x28,r0
-	mov.w	r0,@r1
-	mov	#0x1a,r0
-	mov.w	r0,@(0xc,r1)
-	mov.l	srmask,r1
-	stc	sr,r0
-	and	r1,r0
-	ldc	r0,sr
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	rts
-	nop
-
-
-trace_off:
-!	mov.l	srset,r1
-!	stc	sr,r0
-!	or	r1,r0
-!	ldc	r0,sr
-	mov.l	ubcbase,r1
-	mov	#0x1a,r0
-	mov.w	r0,@(8,r1)
-	add	#0x20,r1
-	mov.w	mask,r2
-	mov.w	@r1,r0
-	and	r2,r0
-	mov.w	r0,@r1
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	rts
-	nop
-
-
-	.align 2
-
-exc_handler:
-	sts.l	pr,@-r15
-	sts.l	mach,@-r15
-	sts.l	macl,@-r15
-	mov.l	ubcbase,r1
-	stc	spc,r0
-!	mov.l	@r1,r4
-!	mov.l	r0,@r1
-	bsr TraceFunc
-	mov	r0,r4
-	lds.l	@r15+,macl
-	lds.l	@r15+,mach
-	lds.l	@r15+,pr
-	mov.l	ubcbase,r0
-	add	#0x20,r0
-	mov.w	mask,r2
-	mov.w	@r0,r1
-	and	r2,r1
-	mov.w	r1,@r0
-	stc	sgr,r15
-	rte
-	nop	
-	.align 2
-.DDReg:
-	.long	_Registers+6
-ubcbase:
-	.long	0xff200000
-srmask:
-	.long	0xcfffffff
-!srset:
-!	.long	0x10000000
-crval:	
-	.word	0x401
-mask:
-	.word	0x3fff
+#ifdef USE_ASM_ALIGN_OPCODES
+.align 5
+#else
 	.align 2
 #endif
+

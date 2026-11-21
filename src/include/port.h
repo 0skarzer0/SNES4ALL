@@ -119,7 +119,11 @@
 #include <sys/types.h>
 
 
-#define PIXEL_FORMAT RGB565 
+#ifdef USE_GL
+#define PIXEL_FORMAT RGB1555
+#else
+#define PIXEL_FORMAT RGB565
+#endif
 //#define GFX_MULTI_FORMAT
 #ifdef GFX_MULTI_FORMAT
 #undef GFX_MULTI_FORMAT
