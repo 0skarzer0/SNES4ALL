@@ -1,0 +1,206 @@
+USE_CPUASM=1
+#USE_CPUASM_MIXTO=1
+
+TARGET = snes4all
+
+BACK_KOS_AS=$(KOS_CC_BASE)/bin/$(KOS_CC_PREFIX)-as
+KOS_AS = $(KOS_CCPLUS) -ml -m4-single-only  -c
+
+#OPTFLAGS=-O3 -fomit-frame-pointer -DDREAMCAST -DDATA_PREFIX="/rd/"
+#OPTFLAGS+= -falign-functions=32 -falign-labels=32 -falign-loops=32 -falign-jumps=32 -ffast-math
+OPTFLAGS=-Os -fomit-frame-pointer -DDREAMCAST -DDATA_PREFIX="/rd/"
+OPTFLAGS+= -falign-functions=32 -falign-labels=4 -falign-loops=4 -falign-jumps=4 -ffast-math -g0
+#OPTFLAGS+= -falign-functions -falign-labels -falign-loops -falign-jumps -ffast-math -g0
+#OPTFLAGS+= -ffast-math
+
+DEFS += -DSNES4ALL_MAX_ROM_SIZE=0x600000
+#DEFS += -DNORES256
+
+DEFS += -DUSE_RASTER_DIFF
+#DEFS += -DUSE_RENDER_BACK
+DEFS +=	-DCPU_SHUTDOWN
+DEFS += -DSPC700_SHUTDOWN 
+DEFS += -DEXECUTE_SUPERFX_PER_LINE
+DEFS += -DSPC700_C
+DEFS += -DVAR_CYCLES
+DEFS += -DSDD1_DECOMP
+DEFS += -DNO_INLINE_SET_GET
+#DEFS += -DUSE_MEMORY_SPEED
+#DEFS += -DUSE_BLOCK_RAM
+#DEFS += -DUSE_ASM_R5
+DEFS += -DUSE_ASM_R12
+#DEFS += -DENABLE_ECHO_SOUND
+#DEFS += -DENABLE_MASTER_VOLUMEN
+#DEFS += -DUSE_SOUND_DESYNC
+#DEFS += -DUSE_REAL_SOUND_MUL
+#DEFS += -DENABLE_INTERPOLATE_SOUND
+DEFS += -DUSE_ALTDECODE=5
+#DEFS += -DENABLE_FIX_FREQUENCY
+#DEFS += -DUSE_MODE7_INTERPOLATE
+DEFS += -DENABLE_GRAPHIC_WINDOWS
+DEFS += -DENABLE_HDMA
+#DEFS += -DNEW_COLOUR_BLENDING
+#DEFS += -DOLD_COLOUR_BLENDING
+#DEFS += -DSNES4ALL_NUM_CHANNELS=6
+#DEFS += -DSNES4ALL_STEREO
+DEFS += -DDIRECT_COLOR_MAP
+DEFS += -DTEST_CACHETILE
+DEFS += -DTILES_INLINE
+
+#DEFS += -DNOSOUND
+
+#DEFS += -DAUTOLOAD="/cd/starwars.zip"
+#DEFS += -DAUTOLOAD="/cd/Parodius.zip"
+#DEFS += -DAUTOLOAD="/sd/snes4all/EarthwormJim.zip"
+#DEFS += -DAUTOLOAD="/sd/snes4all/KirbySuperstar.zip"
+#DEFS += -DAUTOSAVESTATE
+#DEFS += -DAUTO_EVENTS
+#DEFS += -DMAX_AUTO_EVENTS=1000
+
+#DEFS += -DPROFILER_SNES4ALL
+
+#DEFS += -DDEBUG_FRAMESKIP
+#DEFS += -DAUTO_DEBUG_FRAMESKIP=1000
+#DEFS += -DDISPLAY_FRAMERATE
+
+#DEFS += -DDEBUG_TILECACHE
+#DEFS += -DAUTO_DEBUG_TILECACHE=2000
+
+ifdef USE_CPUASM
+DEFS += -DUSE_OPC_ASM
+
+DEFS += -DASMSTRUC_NOP_PATCH
+DEFS += -DSA1ADDR_NOP_PATCH
+DEFS += -DASMADDR_NOP_PATCH
+DEFS += -DUSE_OLD_APUTIMER
+endif
+
+ifdef USE_CPUASM_MIXTO
+DEFS += -DUSE_OPC_ASM_MIXTO
+endif
+
+MORE_CFLAGS = -I$(KOS_BASE)/addons/include/SDL -I$(KOS_BASE)/addons/include $(OPTFLAGS)
+
+MORE_CFLAGS +=	-Isrc/include -Isrc/unzip -Isrc/menu -Isrc/sh -DMITSHM \
+		$(DEFS) -DUNZIP_SUPPORT -DZLIB -DHAVE_MKSTEMP  \
+		-DACCEPT_SIZE_T=int
+
+#MORE_CFLAGS += -DNOSOUND
+
+KOS_CFLAGS += $(MORE_CFLAGS)
+KOS_CPPFLAGS += $(MORE_CFLAGS)
+KOS_AFLAGS = $(MORE_CFLAGS)
+
+all: $(TARGET).bin
+
+include $(KOS_BASE)/Makefile.rules
+
+KOS_CPPFLAGS=-fno-operator-names -fno-exceptions
+
+OBJS =	\
+	src/globals.o \
+	src/fxinst.o \
+	src/c4emu.o \
+	src/fxemu.o \
+	src/2xsai.o \
+	src/apu.o \
+	src/apudebug.o \
+	src/c4.o \
+	src/cheats.o \
+	src/cheats2.o \
+	src/clip.o \
+	src/cpu.o \
+	src/data.o \
+	src/debug.o \
+	src/dma.o \
+	src/dsp1.o \
+	src/gfx.o \
+	src/loadzip.o \
+	src/memmap.o \
+	src/netplay.o \
+	src/obc1.o \
+	src/ppu.o \
+	src/sa1.o \
+	src/screenshot.o \
+	src/sdd1.o \
+	src/sdd1emu.o \
+	src/server.o \
+	src/seta.o \
+	src/seta010.o \
+	src/seta011.o \
+	src/seta018.o \
+	src/snaporig.o \
+	src/snapshot.o \
+	src/snes9x.o \
+	src/soundux.o \
+	src/spc700.o \
+	src/spc7110.o \
+	src/srtc.o \
+	src/tile.o \
+	src/sdl/config.o \
+	src/sdl/machine.o \
+	src/sdl/vmu.o \
+	src/sdl/sdl.o \
+	src/unzip/explode.o \
+	src/unzip/unreduce.o \
+	src/unzip/unshrink.o \
+	src/unzip/unzip.o \
+	src/menu/fade.o \
+	src/menu/menu.o \
+	src/menu/menu_main.o \
+	src/menu/menu_save.o \
+	src/menu/menu_load.o \
+	romdisk.o
+
+ifdef USE_CPUASM
+ifdef USE_CPUASM_MIXTO
+OBJS +=	\
+	src/cpuexec.o 
+endif
+OBJS +=	\
+	src/sh/cpuexec.o \
+	src/sh/cpuops.o \
+	src/sh/sa1ops.o \
+	src/sh/cpumem.o
+else
+OBJS +=	\
+	src/cpuops.o \
+	src/cpuexec.o \
+	src/sa1cpu.o
+endif
+
+
+clean:
+	rm -f $(OBJS) $(TARGET).elf $(TARGET).bin  romdisk.o romdisk.img example.iso offsets.bin offsets.elf src/offsets.o
+
+$(TARGET).elf: $(OBJS)
+	$(KOS_CC) $(KOS_CFLAGS) $(KOS_LDFLAGS) -o $(TARGET).elf $(KOS_START) \
+	$(OBJS) $(OBJEXTRA) -lSDL_mixer_126 -lSDL_1213 -lz_123 -lm  $(KOS_LIBS)
+
+offsets.elf: src/offsets.o
+	$(KOS_CC) $(KOS_CFLAGS) $(KOS_LDFLAGS) -o offsets.elf $(KOS_START) \
+	src/offsets.o $(OBJEXTRA) -lm  $(KOS_LIBS)
+
+$(TARGET).bin: $(TARGET).elf
+	$(KOS_OBJCOPY) -R .stack -O binary $(TARGET).elf $(TARGET).bin
+
+offsets.bin: offsets.elf
+	$(KOS_OBJCOPY) -R .stack -O binary offsets.elf offsets.bin
+
+romdisk.o: romdisk.img
+	KOS_AS=$(BACK_KOS_AS) KOS_AFLAGS=-little $(KOS_BASE)/utils/bin2o/bin2o romdisk.img romdisk romdisk.o
+#	bin2odc romdisk.img romdisk.o
+
+romdisk.img:
+	$(KOS_GENROMFS) -f romdisk.img -d data -v
+
+example.iso: example
+	mkisofs -joliet-long -l -o example.iso -graft-points /=example/
+
+run: $(TARGET).bin example.iso
+	$(KOS_LOADER) $(TARGET).bin -i example.iso
+#	$(KOS_LOADER) $(TARGET).bin
+
+offsets: offsets.bin
+	$(KOS_LOADER) offsets.bin > offsets.h
+

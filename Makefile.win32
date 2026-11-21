@@ -1,0 +1,219 @@
+#USE_CPUASM=1
+#USE_MMX=1
+#USE_ZSNES_FX=1
+
+
+NAME   = snes4all
+O      = o
+RM     = rm -f
+CC     = gcc-3
+CXX    = g++-3
+AS     = c++-3
+STRIP  = strip
+
+PROG   = $(NAME)
+
+DEFS += -DSNES4ALL_MAX_ROM_SIZE=0x600000 
+#DEFS += -DNORES256
+
+DEFS += -DCPU_SHUTDOWN
+DEFS += -DSPC700_SHUTDOWN 
+DEFS += -DEXECUTE_SUPERFX_PER_LINE
+DEFS += -DSPC700_C
+DEFS += -DVAR_CYCLES
+DEFS += -DSDD1_DECOMP
+#DEFS += -DNO_INLINE_SET_GET
+#DEFS += -DENABLE_ECHO_SOUND
+#DEFS += -DENABLE_MASTER_VOLUMEN
+#DEFS += -DUSE_SOUND_DESYNC
+#DEFS += -DENABLE_INTERPOLATE_SOUND
+#DEFS += -DUSE_ALTDECODE=1
+#DEFS += -DENABLE_FIX_FREQUENCY
+#DEFS += -DUSE_MODE7_INTERPOLATE
+DEFS += -DENABLE_GRAPHIC_WINDOWS
+DEFS += -DENABLE_HDMA
+#DEFS += -DNEW_COLOUR_BLENDING
+#DEFS += -DOLD_COLOUR_BLENDING
+#DEFS += -DSNES4ALL_NUM_CHANNELS=6
+#DEFS += -DSNES4ALL_STEREO
+DEFS += -DDIRECT_COLOR_MAP
+#DEFS += -DTEST_CACHETILE
+#DEFS += -DTILES_INLINE
+
+#DEFS += -DNOSOUND
+
+#DEFS += -DAUTOLOAD=\"example/smario.smc\"
+#DEFS += -DAUTO_EVENTS
+#DEFS += -DMAX_AUTO_EVENTS=1000
+
+#DEFS += -DPROFILER_SNES4ALL
+
+#DEFS += -DDEBUG_FRAMESKIP
+#DEFS += -DAUTO_DEBUG_FRAMESKIP=1000
+#DEFS += -DDISPLAY_FRAMERATE
+
+#DEFS += -DDEBUG_TILECACHE
+#DEFS += -DAUTO_DEBUG_TILECACHE=2000
+
+DEFS +=  -D__DJGPP__ -D__DJGCC -D_WINDOWS
+
+ifdef USE_CPUASM
+DEFS += -DUSE_X86_ASM -DUSE_OPC_ASM
+endif
+
+ifdef USE_MMX
+DEFS += -DMMX
+endif
+
+ifdef USE_ZSNES_FX
+DEFS += -DZSNES_FX
+endif
+
+
+DEFAULT_CFLAGS = `sdl-config --cflags`
+LDFLAGS        = `sdl-config --libs` -lSDL_mixer -lz
+
+MORE_CFLAGS = -O3 -DDATA_PREFIX=\"data/\"  -U__WIN32__
+
+MORE_CFLAGS +=	-Isrc/include -Isrc/unzip -Isrc/menu -Isrc/i386 -DMITSHM \
+		$(DEFS) -DUNZIP_SUPPORT -DZLIB -DHAVE_MKSTEMP -DHAVE_STRINGS_H \
+		'-DACCEPT_SIZE_T=int'
+
+
+
+CFLAGS  = $(DEFAULT_CFLAGS) $(MORE_CFLAGS)
+CPPFLAGS  = $(DEFAULT_CFLAGS) $(MORE_CFLAGS)
+
+OBJS =	\
+	src/2xsai.o \
+	src/apu.o \
+	src/apudebug.o \
+	src/c4.o \
+	src/cheats.o \
+	src/cheats2.o \
+	src/clip.o \
+	src/cpu.o \
+	src/data.o \
+	src/debug.o \
+	src/dma.o \
+	src/dsp1.o \
+	src/gfx.o \
+	src/globals.o \
+	src/loadzip.o \
+	src/memmap.o \
+	src/netplay.o \
+	src/obc1.o \
+	src/ppu.o \
+	src/sa1.o \
+	src/screenshot.o \
+	src/sdd1.o \
+	src/sdd1emu.o \
+	src/server.o \
+	src/seta.o \
+	src/seta010.o \
+	src/seta011.o \
+	src/seta018.o \
+	src/snaporig.o \
+	src/snapshot.o \
+	src/snes9x.o \
+	src/soundux.o \
+	src/spc700.o \
+	src/spc7110.o \
+	src/srtc.o \
+	src/tile.o \
+	src/sdl/config.o \
+	src/sdl/machine.o \
+	src/sdl/sdl.o \
+	src/unzip/explode.o \
+	src/unzip/unreduce.o \
+	src/unzip/unshrink.o \
+	src/unzip/unzip.o \
+	src/menu/fade.o \
+	src/menu/menu.o \
+	src/menu/menu_main.o \
+	src/menu/menu_save.o \
+	src/menu/menu_load.o
+
+ifdef USE_CPUASM
+OBJS += \
+	src/i386/cpuexec.o \
+	src/i386/cpuops.o \
+	src/i386/sa1ops.o \
+	src/i386/spc.o 
+else
+OBJS += \
+	src/cpuexec.o \
+	src/sa1cpu.o
+endif
+
+ifdef USE_MMX
+OBJS += \
+	src/i386/2xsaimmx.o \
+	src/i386/bilinear.o
+endif
+
+ifdef USE_ZSNES_FX
+OBJS += \
+	src/i386/fxemu2.o \
+	src/i386/fxemu2b.o \
+	src/i386/fxemu2c.o \
+	src/i386/fxtable.o \
+	src/i386/sfxproc.o \
+	src/i386/zsnes.o \
+	src/i386/zsnesc4.o \
+	src/i386/c4.o 
+else
+OBJS += \
+	src/cpuops.o \
+	src/fxinst.o \
+	src/c4emu.o \
+	src/fxemu.o
+endif
+
+
+all: $(PROG)
+
+run: $(PROG)
+	./$(PROG)
+
+clean:
+	$(RM) $(PROG).exe $(OBJS) stdout.txt stderr.txt
+
+src/i386/2xsaimmx.o: src/i386/2xsaimmx.asm
+	nasm -f gnuwin32 src/i386/2xsaimmx.asm $(DEFS) 
+
+src/i386/bilinear.o: src/i386/bilinear.asm
+	nasm -f gnuwin32 src/i386/bilinear.asm $(DEFS)
+
+src/i386/c4.o: src/i386/c4.asm
+	nasm -f gnuwin32 src/i386/c4.asm $(DEFS)
+
+src/i386/fxemu2.o: src/i386/fxemu2.asm
+	nasm -f gnuwin32 src/i386/fxemu2.asm $(DEFS)
+
+src/i386/fxemu2b.o: src/i386/fxemu2b.asm
+	nasm -f gnuwin32 src/i386/fxemu2b.asm $(DEFS)
+
+src/i386/fxemu2c.o: src/i386/fxemu2c.asm
+	nasm -f gnuwin32 src/i386/fxemu2c.asm $(DEFS)
+
+src/i386/fxtable.o: src/i386/fxtable.asm
+	nasm -f gnuwin32 src/i386/fxtable.asm $(DEFS)
+
+src/i386/sfxproc.o: src/i386/sfxproc.asm
+	nasm -f gnuwin32 src/i386/sfxproc.asm $(DEFS)
+
+src/i386/spc.o: src/i386/spc.asm
+	nasm -f gnuwin32 src/i386/spc.asm $(DEFS)
+
+src/i386/zsnes.o: src/i386/zsnes.asm
+	nasm -f gnuwin32 src/i386/zsnes.asm $(DEFS)
+
+src/i386/zsnesc4.o: src/i386/zsnesc4.asm
+	nasm -f gnuwin32 src/i386/zsnesc4.asm $(DEFS)
+
+
+$(PROG): $(OBJS)
+	$(CC) -L/usr/lib/mingw -L/usr/local/lib -o $(PROG) -lmingw32 $(OBJS) -lz -lSDL_static_129 -mwindows -mno-cygwin -luser32 -lgdi32 -lwinmm -ldxguid
+	$(STRIP) $(PROG).exe
+
